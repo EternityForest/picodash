@@ -68,11 +68,16 @@ which just holds a variable.
 The config may be user-supplied, but data sources can also set their
 own config props with backend data.
 
+
+This is already a builtin data source provider, but let's see how it works:
+
 ```js
-class SimpleVariableDataSource extends picodash.DataSource {
+class FixedDataSource extends picodash.DataSource {
+
     constructor(name, config) {
         super(name, config);
-        this.data = config['default'] || ""
+        this.config.readonly = true
+        this.data = JSON.parse(name.split(":")[1] || '')
     }
 
     async getData() {
@@ -80,15 +85,31 @@ class SimpleVariableDataSource extends picodash.DataSource {
     }
 
     async pushData(data) {
-        this.data = data
+        // Don't allow changes.
+        data = this.data
         super.pushData(data)
     }
 
-    async close(){
-
+    async register() {
+        super.register()
+        // We call ready() right away, since we don't have any
+        // delayed setup to do.
+        super.ready()
     }
 }
+
+addDataSourceProvider("fixed", FixedDataSource)
 ```
+
+Now you can use it as an on-demand datasource type!  This will have
+a fixed value of 42.
+
+```html
+<label>Random:
+    <ds-span source="fixed: 42"></ds-span>
+</label>
+```
+
 
 ### Manually Subscribing to them
 
@@ -137,6 +158,13 @@ to notify it abouut updates.
 A widget may check the type of it's source and enable ay number of optional
 features beyond this.
 
+
+### widget.getActiveConfig()
+
+Gets either the top filter in the stack's config, or the data sources config
+if there are none.  This lets you figure out things like the min/max range
+and whether the val is readonly.
+
 ### Builtin Widgets
 
 #### ds-input
@@ -163,6 +191,15 @@ They take a space-separated set of arguments.
 Lets make a filter that multiplies a value for display,
 and divides user-set vals again.
 
+Filters have a config property to pass info like the readonly status to
+the widgets.
+
+By default, the contructor takes the config parameter as it's config and adds the readonly property from the source or previous filter.
+
+Your filter should update config to apply to the filtered value.  For example,
+this filter looks as the range constraints and multiplies them by the same factor
+it multiplies the value.
+
 ```js
 
 class Mult extends picodash.Filter {
@@ -170,7 +207,17 @@ class Mult extends picodash.Filter {
         // Prev can be undefined, the data source object,
         // Or the previous filter
         super(s, conf, prev)
+
         this.m = parseFloat(this.args[0])
+
+
+        // Multiply config vals, so that widgets know
+        // the range.
+        for (var i of ['min', 'max', 'high', 'low', 'step']) {
+            if (typeof prev.config[i] !== 'undefined') {
+                this.config[i] = prev.config[i] * this.m
+            }
+        }
     }
     
     async get(unfiltered) {
@@ -194,6 +241,16 @@ Use your filter
     <ds-input type="number" source="myDataSource" filter="mult: 5"></ds-input>
 </label>
 ```
+
+
+## Config Keys
+
+Usable in datasource.config or filter.config. All keys optional.
+
+
+### min, max, step, hi, lo
+
+Set the range, min increment to snap to,  and optimal range of a numeric value.
 
 ## Building
 

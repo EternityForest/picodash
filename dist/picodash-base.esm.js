@@ -202,7 +202,15 @@ class DataSource {
 
 class Filter {
     constructor(s, cfg, prev) {
-        this.cfg = cfg;
+        this.config = cfg;
+
+        // One read only carries forward
+        if (prev) {
+            if (prev.config.readonly) {
+                this.config.readonly = true;
+            }
+        }
+
         this.prev = prev;
         s = s.split(":")[1];
 
@@ -233,6 +241,14 @@ class Mult extends Filter {
     constructor(s, cfg, prev) {
         super(s, cfg, prev);
         this.m = parseFloat(this.args[0]);
+
+        // Multiply config vals, so that widgets know
+        // the range.
+        for (var i of ['min', 'max', 'high', 'low', 'step']) {
+            if (typeof prev.config[i] !== 'undefined') {
+                this.config[i] = prev.config[i] * this.m;
+            }
+        }
     }
 
     async get(unfiltered) {
@@ -252,6 +268,10 @@ filterProviders["mult"] = Mult;
 class FixedPoint extends Filter {
     constructor(s, cfg, prev) {
         super(s, cfg, prev);
+        if (prev) {
+            this.config = prev.config;
+        }
+
         this.m = parseInt(this.args[0]);
     }
 
@@ -272,6 +292,18 @@ class Offset extends Filter {
     constructor(s, cfg, prev) {
         super(s, cfg, prev);
         this.m = parseFloat(this.args[0]);
+        // Multiply config vals, so that widgets know
+        // the range.
+
+        for (var i of ['min', 'max', 'high', 'low']) {
+            if (typeof prev.config[i] !== 'undefined') {
+                this.config[i] = prev.config[i] + this.m;
+            }
+        }
+
+        if (typeof prev.config.step !== 'undefined') {
+            this.config.step = prev.config.step;
+        }
     }
 
     async get(unfiltered) {
@@ -337,6 +369,19 @@ class BaseDashWidget extends HTMLElement {
 
     }
 
+    getActiveConfig() {
+        /*Return the config of either the top filter in the stack,
+        or the source, if there are no filters.
+        */
+        if (this.filterStack.length > 0) {
+            return this.filterStack[this.filterStack.length - 1].config
+        }
+        else {
+            return this.source.config
+        }
+
+    }
+
     disconnectedCallback() {
         this.source.unsubscribe(this.setterFunc);
         for (i in this.filterStack) {
@@ -399,10 +444,10 @@ class RandomDataSource extends DataSource {
     constructor(name, config) {
         super(name, config);
 
-        this.min = 0;
-        this.max = 1;
-        this.high = 0.9;
-        this.low = 0.1;
+        this.config.min = 0;
+        this.config.max = 1;
+        this.config.high = 0.9;
+        this.config.low = 0.1;
 
         function upd() {
             this.pushData(Math.random() * 2 - 1);
@@ -473,10 +518,12 @@ class MeterDashWidget extends BaseDashWidget {
     async onDataReady() {
         var m = document.createElement("meter");
         this.meter = m;
-        this.meter.min = this.source.config.min || this.getAttribute("min") || -1;
-        this.meter.max = this.source.config.max || this.getAttribute("max") || 1;
-        this.meter.high = this.source.config.high || this.getAttribute("high") || 1000000000;
-        this.meter.low = this.source.config.low || this.getAttribute("low") || -1000000000;
+        var cfg = this.getActiveConfig();
+
+        this.meter.min = cfg.min || this.getAttribute("min") || -1;
+        this.meter.max = cfg.max || this.getAttribute("max") || 1;
+        this.meter.high = cfg.high || this.getAttribute("high") || 1000000000;
+        this.meter.low = cfg.low || this.getAttribute("low") || -1000000000;
         this.meter.style.width = "100%";
         this.innerHTML = '';
         this.appendChild(m);
@@ -500,10 +547,21 @@ class InputDashWidget extends BaseDashWidget {
     }
 
     async onDataReady() {
+        var cfg = this.getActiveConfig();
+
         this.input = document.createElement("input");
-        if (this.source.config.readonly) {
+        if (cfg.readonly) {
             this.input.disabled = true;
         }
+
+        for (var i of ['min', 'max', 'high', 'low', 'step']) {
+            var x = cfg[i] || this.getAttribute("min");
+
+            if (typeof x != 'undefined') {
+                this.input[i] = x;
+            }
+        }
+
         this.input.type = this.getAttribute("type") || 'text';
         this.innerHTML = '';
         this.appendChild(this.input);
