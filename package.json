@@ -1,0 +1,23 @@
+{
+  "name": "picodash",
+  "version": "0.1.0",
+  "description": "Extremely minimal dashboard",
+  "main": "dist/picodash-core.min.js",
+  "module": "dist/picodash-core.esm.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "build": "npx rollup --config",
+    "serve": "npx http-server"
+  },
+  "dependencies": {
+    "webpack": "^5.24.1"
+  },
+  "author": "Daniel Dunn",
+  "license": "MIT",
+  "devDependencies": {
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-terser": "^0.4.4",
+    "http-server": "^14.1.1",
+    "rollup": "^4.17.0"
+  }
+}

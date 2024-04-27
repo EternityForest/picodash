@@ -1,0 +1,84 @@
+<link rel="stylesheet" type="text/css" href="barrel.css">
+
+<script type="module">
+    import picodash from "./dist/picodash-base.esm.js"
+
+    var ds1 = new picodash.SimpleVariableDataSource("myDataSource", {})
+    await ds1.register()
+    ds1.pushData(10)
+
+
+    var ds2 = new picodash.SimpleVariableDataSource("myDataSource2", {})
+    await ds2.register()
+
+    var count = [0]
+
+    for (var i = 0; i < 100; i++) {
+        ds2.pushData(count[0])
+        count[0] += 1
+    }
+    setInterval(function () {
+        ds2.pushData(count[0])
+        count[0] += 1
+
+    }, 250)
+
+
+    class Nop extends picodash.Filter {
+        constructor(s, conf, prev) {
+            // Prev can be undefined, the data source object,
+            // Or the previous filter
+            super(s, conf, prev)
+        }
+
+        async get(unfiltered) {
+            // Convert from unfiltered to filtered
+            return unfiltered
+        }
+
+        async set(val) {
+            // Convert from filtered to unfiltered
+            return val
+        }
+    }
+
+    picodash.addFilterProvider('nop', Nop)
+</script>
+
+
+<main>
+    <h2>Picodash Demo</h2>
+    <section class="window">
+
+        <div class="stacked-form">
+            <label>Random Data(Fixed Point)
+                <ds-span source="random:" filter="fixedpoint: 3"></ds-span>
+            </label>
+
+            <label>Random Data(nop filter does nothing)
+                <ds-meter source="random:" filter="nop:" class="w-4rem"></ds-meter>
+            </label>
+
+            <label>Two fields with same data source
+                <ds-input type="number" source="myDataSource"></ds-input>
+            </label>
+
+            <label>Two fields with same data source
+                <ds-input type="number" source="myDataSource"></ds-input>
+            </label>
+
+            <label>Same data source, but with multiplier x10 filter
+                <ds-input type="number" source="myDataSource" filter="mult: 10"></ds-input>
+            </label>
+
+
+            <label>Multiplier x50 and offset +1000 filter stacked
+                <ds-input type="number" source="myDataSource" filter="mult: 50 | offset: 1000"></ds-input>
+            </label>
+
+            <label>Scrolling log window
+                <ds-logwindow source="myDataSource2" class="scroll max-h-12rem"></ds-logwindow>
+            </label>
+        </div>
+    </section>
+</main>
