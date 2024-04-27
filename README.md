@@ -1,5 +1,8 @@
 # Picodash: A very minimal dashboard framework
 
+
+See the [Demo!](https://eternityforest.github.io/picodash/)
+
 Picodash is a library for making dashboards.  It connects widgets to data sources,
 letting you build your dashboard in simple HTML.  
 
