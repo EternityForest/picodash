@@ -3,7 +3,7 @@
 <script type="module">
     import picodash from "./dist/picodash-base.esm.js"
 
-    var ds1 = new picodash.SimpleVariableDataSource("myDataSource", {})
+    var ds1 = new picodash.SimpleVariableDataSource("myDataSource", { step: 0.25 })
     await ds1.register()
     ds1.pushData(10)
 
@@ -51,12 +51,18 @@
     <section class="window">
 
         <div class="stacked-form">
+
+
             <label>Random Data(Fixed Point)
                 <ds-span source="random:" filter="fixedpoint: 3"></ds-span>
             </label>
 
             <label>Random Data(nop filter does nothing)
                 <ds-meter source="random:" filter="nop:" class="w-4rem"></ds-meter>
+            </label>
+
+            <label>Readonly Data
+                <ds-input source="fixed:124.6779" filter="fixedpoint: 3"></ds-input>
             </label>
 
             <label>Two fields with same data source

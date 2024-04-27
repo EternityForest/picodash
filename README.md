@@ -158,6 +158,13 @@ to notify it abouut updates.
 A widget may check the type of it's source and enable ay number of optional
 features beyond this.
 
+
+### widget.getActiveConfig()
+
+Gets either the top filter in the stack's config, or the data sources config
+if there are none.  This lets you figure out things like the min/max range
+and whether the val is readonly.
+
 ### Builtin Widgets
 
 #### ds-input
@@ -184,6 +191,15 @@ They take a space-separated set of arguments.
 Lets make a filter that multiplies a value for display,
 and divides user-set vals again.
 
+Filters have a config property to pass info like the readonly status to
+the widgets.
+
+By default, the contructor takes the config parameter as it's config and adds the readonly property from the source or previous filter.
+
+Your filter should update config to apply to the filtered value.  For example,
+this filter looks as the range constraints and multiplies them by the same factor
+it multiplies the value.
+
 ```js
 
 class Mult extends picodash.Filter {
@@ -191,7 +207,17 @@ class Mult extends picodash.Filter {
         // Prev can be undefined, the data source object,
         // Or the previous filter
         super(s, conf, prev)
+
         this.m = parseFloat(this.args[0])
+
+
+        // Multiply config vals, so that widgets know
+        // the range.
+        for (var i of ['min', 'max', 'high', 'low', 'step']) {
+            if (typeof prev.config[i] !== 'undefined') {
+                this.config[i] = prev.config[i] * this.m
+            }
+        }
     }
     
     async get(unfiltered) {
@@ -215,6 +241,16 @@ Use your filter
     <ds-input type="number" source="myDataSource" filter="mult: 5"></ds-input>
 </label>
 ```
+
+
+## Config Keys
+
+Usable in datasource.config or filter.config. All keys optional.
+
+
+### min, max, step, hi, lo
+
+Set the range, min increment to snap to,  and optimal range of a numeric value.
 
 ## Building
 
