@@ -430,11 +430,18 @@ class FixedDataSource extends DataSource {
 
     constructor(name, config) {
         super(name, config);
+        this.config.readonly = true;
         this.data = JSON.parse(name.split(":")[1] || '');
     }
 
     async getData() {
         return this.data
+    }
+
+    async pushData(data) {
+        // Don't allow changes.
+        data = this.data;
+        super.pushData(data);
     }
 
     async register() {
@@ -494,6 +501,9 @@ class InputDashWidget extends BaseDashWidget {
 
     async onDataReady() {
         this.input = document.createElement("input");
+        if (this.source.config.readonly) {
+            this.input.disabled = true;
+        }
         this.input.type = this.getAttribute("type") || 'text';
         this.innerHTML = '';
         this.appendChild(this.input);
