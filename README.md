@@ -68,11 +68,16 @@ which just holds a variable.
 The config may be user-supplied, but data sources can also set their
 own config props with backend data.
 
+
+This is already a builtin data source provider, but let's see how it works:
+
 ```js
-class SimpleVariableDataSource extends picodash.DataSource {
+class FixedDataSource extends picodash.DataSource {
+
     constructor(name, config) {
         super(name, config);
-        this.data = config['default'] || ""
+        this.config.readonly = true
+        this.data = JSON.parse(name.split(":")[1] || '')
     }
 
     async getData() {
@@ -80,15 +85,31 @@ class SimpleVariableDataSource extends picodash.DataSource {
     }
 
     async pushData(data) {
-        this.data = data
+        // Don't allow changes.
+        data = this.data
         super.pushData(data)
     }
 
-    async close(){
-
+    async register() {
+        super.register()
+        // We call ready() right away, since we don't have any
+        // delayed setup to do.
+        super.ready()
     }
 }
+
+addDataSourceProvider("fixed", FixedDataSource)
 ```
+
+Now you can use it as an on-demand datasource type!  This will have
+a fixed value of 42.
+
+```html
+<label>Random:
+    <ds-span source="fixed: 42"></ds-span>
+</label>
+```
+
 
 ### Manually Subscribing to them
 
