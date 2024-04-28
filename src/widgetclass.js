@@ -1,129 +1,121 @@
-import picodash from "./picodash";
+import picodash from './picodash'
 
 class BaseDashWidget extends HTMLElement {
-    onData(data) {
+  onData (data) {
 
+  }
+
+  onExtraData (src, data) {
+
+  }
+
+  _subscribeToExtraSource (srcname) {
+    const s = this.extraSources[srcname]
+    function f (data) {
+      this.onExtraData(srcname, data)
     }
+    this.extraSourceSubscribers[srcname] = f
+    s.subscribe(f.bind(this))
+  }
 
-    onExtraData(src, data) {
+  connectedCallback () {
+    this.innerHTML = 'Awating Data Source'
+    async function f () {
+      this.source = picodash.getDataSource(this.getAttribute('source'))
 
-    }
+      this.extraSources = {}
+      this.extraSourceSubscribers = {}
 
-    _subscribeToExtraSource(srcname) {
-        var s = this.extraSources[srcname]
-        function f(data) {
-            this.onExtraData(srcname, data)
+      for (const i of this.getAttributeNames()) {
+        if (i.startsWith('source-')) {
+          const srcname = i.replace('source-', '')
+          this.extraSources[srcname] = picodash.getDataSource(this.getAttribute(i))
+          this._subscribeToExtraSource(srcname)
         }
-        this.extraSourceSubscribers[srcname] = f
-        s.subscribe(f.bind(this))
+      }
+
+      this.filterStack = []
+      let prevFilter = this.source
+
+      if (this.getAttribute('filter')) {
+        const fs = this.getAttribute('filter').split('|')
+        for (const i in fs) {
+          prevFilter = picodash.getFilter(fs[i], prevFilter)
+          this.filterStack.push(prevFilter)
+        }
+      }
+
+      async function f (data) {
+        data = await this.runFilterStack(data)
+        await this.onData(data)
+      }
+
+      this.setterFunc = f.bind(this)
+
+      async function push (newValue) {
+        const d = await this.runFilterStackReverse(newValue)
+        await this.source.pushData(d)
+      }
+
+      this.pushData = push.bind(this)
+      this.source.subscribe(this.setterFunc)
+      this.onDataReady()
     }
 
-    connectedCallback() {
-        this.innerHTML = "Awating Data Source"
-        async function f() {
-            this.source = picodash.getDataSource(this.getAttribute("source"))
+    const waitFor = []
 
-            this.extraSources = {}
-            this.extraSourceSubscribers = {}
+    // Get all the sources including the main one,
+    // And wait for them to be ready
 
-
-            for (i of this.getAttributeNames()) {
-                if (i.startsWith("source-")) {
-                    var srcname = i.replace("source-", "")
-                    this.extraSources[srcname] = picodash.getDataSource(this.getAttribute(i))
-                    this._subscribeToExtraSource(srcname)
-                }
-            }
-
-            this.filterStack = []
-            var prev_filter = this.source
-
-            if (this.getAttribute("filter")) {
-                var fs = this.getAttribute("filter").split("|")
-                for (var i in fs) {
-                    prev_filter = picodash.getFilter(fs[i], prev_filter)
-                    this.filterStack.push(prev_filter)
-                }
-            }
-
-            async function f(data) {
-                data = await this.runFilterStack(data)
-                await this.onData(data)
-            }
-
-            this.setterFunc = f.bind(this)
-
-
-            async function push(newValue) {
-                var d = await this.runFilterStackReverse(newValue)
-                await this.source.pushData(d)
-            }
-
-            this.pushData = push.bind(this)
-            this.source.subscribe(this.setterFunc)
-            this.onDataReady()
-        }
-        f = f.bind(this)
-
-        var wait_for = []
-
-        // Get all the sources including the main one,
-        // And wait for them to be ready
-
-        for (var i of this.getAttributeNames()) {
-            if (i.startsWith("source-")) {
-                wait_for.push(this.getAttribute(i))
-            }
-
-        }
-        wait_for.push(this.getAttribute("source"))
-        picodash.whenSourceAvailable(wait_for, f)
-
+    for (const i of this.getAttributeNames()) {
+      if (i.startsWith('source-')) {
+        waitFor.push(this.getAttribute(i))
+      }
     }
+    waitFor.push(this.getAttribute('source'))
+    picodash.whenSourceAvailable(waitFor, f.bind(this))
+  }
 
-
-    async runFilterStackReverse(data) {
-        for (var i in this.filterStack) {
-            data = await this.filterStack[this.filterStack.length - 1 - i].set(data)
-        }
-        return data
+  async runFilterStackReverse (data) {
+    for (const i in this.filterStack) {
+      data = await this.filterStack[this.filterStack.length - 1 - i].set(data)
     }
+    return data
+  }
 
-    async runFilterStack(data) {
-        for (var i in this.filterStack) {
-            data = await this.filterStack[i].get(data)
-        }
-        return data
+  async runFilterStack (data) {
+    for (const i in this.filterStack) {
+      data = await this.filterStack[i].get(data)
     }
+    return data
+  }
 
-    getActiveConfig() {
-        /*Return the config of either the top filter in the stack,
+  getActiveConfig () {
+    /* Return the config of either the top filter in the stack,
         or the source, if there are no filters.
         */
-        if (this.filterStack.length > 0) {
-            return this.filterStack[this.filterStack.length - 1].config
-        }
-        else {
-            return this.source.config
-        }
-
+    if (this.filterStack.length > 0) {
+      return this.filterStack[this.filterStack.length - 1].config
+    } else {
+      return this.source.config
     }
+  }
 
-    disconnectedCallback() {
-        this.source.unsubscribe(this.setterFunc)
-        for (i in this.filterStack) {
-            this.filterStack[i].close()
-        }
-        for (i in this.extraSources) {
-            this.extraSources[i].unsubscribe(this.extraSourceSubscribers[i])
-        }
+  disconnectedCallback () {
+    this.source.unsubscribe(this.setterFunc)
+    for (const i in this.filterStack) {
+      this.filterStack[i].close()
     }
+    for (const j in this.extraSources) {
+      this.extraSources[j].unsubscribe(this.extraSourceSubscribers[j])
+    }
+  }
 
-    async refresh() {
-        var data = await this.source.getData();
-        data = await this.runFilterStack(data)
-        return data
-    }
+  async refresh () {
+    let data = await this.source.getData()
+    data = await this.runFilterStack(data)
+    return data
+  }
 }
 
 picodash.BaseDashWidget = BaseDashWidget
