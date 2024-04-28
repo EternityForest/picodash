@@ -1,7 +1,9 @@
 import picodash from "./picodash";
+import BaseDashWidget from "./widgetclass";
 
 
-class ButtonDashWidget extends picodash.BaseDashWidget {
+
+class ButtonDashWidget extends BaseDashWidget {
     async onData(data) {
         try {
             this.data = parseFloat(data)
@@ -13,24 +15,55 @@ class ButtonDashWidget extends picodash.BaseDashWidget {
     }
 
     async onDataReady() {
+        this.innerHTML = ""
+        this.appendChild(this.buttonEl)
+
+        this.dummy = () => { }
+
         var x = await this.refresh()
         await this.onData(x)
+
     }
 
     connectedCallback() {
-        super.connectedCallback()
+
+        var x = []
         var b = document.createElement("button")
+        this.buttonEl = b
+
+        // Move elements *before* the superclass adds the placeholder.
+        for (var i of this.childNodes) {
+            x.push(i)
+        }
+        for (var i of x) {
+            this.removeChild(i)
+            this.buttonEl.appendChild(i)
+        }
+
+        super.connectedCallback()
+
         b.onclick = async () => {
-            await this.pushData(this.data + 1)
+            if (this.extraSources.pressed) {
+                v = await this.extraSources.pressed.getData()
+            }
+            else {
+                var v = this.data + 1
+            }
+
+            await this.pushData(v)
         }
         this.appendChild(b)
 
         var observer = new MutationObserver(function (mutations) {
             mutations.forEach(function (mutation) {
-                if (mutation.addedNodes.length)
-                    var n = mutation.addedNodes[0]
-                this.removeChild(n)
-                this.buttonEl.appendChild(n)
+                if (mutation.addedNodes.length) {
+                    for (var n of mutation.addedNodes) {
+                        if (n.nodeName != "BUTTON") {
+                            this.removeChild(n)
+                            this.buttonEl.appendChild(n)
+                        }
+                    }
+                }
             })
         })
 
@@ -41,7 +74,7 @@ customElements.define("ds-button", ButtonDashWidget);
 
 
 
-class SpanDashWidget extends picodash.BaseDashWidget {
+class SpanDashWidget extends BaseDashWidget {
     async onData(data) {
         this.innerText = data
     }
@@ -55,7 +88,7 @@ customElements.define("ds-span", SpanDashWidget);
 
 
 
-class MeterDashWidget extends picodash.BaseDashWidget {
+class MeterDashWidget extends BaseDashWidget {
     async onDataReady() {
         var m = document.createElement("meter")
         this.meter = m
@@ -119,7 +152,7 @@ class InputDashWidget extends picodash.BaseDashWidget {
 customElements.define("ds-input", InputDashWidget);
 
 
-class LogWindowDashWidget extends picodash.BaseDashWidget {
+class LogWindowDashWidget extends BaseDashWidget {
     onData(data, timestamp) {
         var v = document.createElement("article")
         var p = document.createElement("p")

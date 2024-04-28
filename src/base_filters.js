@@ -38,7 +38,13 @@ class FixedPoint extends picodash.Filter {
 
     async get(unfiltered) {
         // Convert from unfiltered to filtered
-        return unfiltered.toFixed(this.m)
+        try {
+            return unfiltered.toFixed(parseFloat(this.m))
+        }
+        catch (e) {
+            console.log(e)
+            return "NaN"
+        }
     }
 
     async set(val) {

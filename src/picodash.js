@@ -33,7 +33,11 @@ document.addEventListener("DOMContentLoaded", function (event) {
     fully_loaded[0] = 1;
 });
 
-function whenSourceAvailable(name, f) {
+function wrapDeferWhenSourceAvailable(name, f) {
+
+    /*Given f, return another function that will call f
+     when the data source is available
+     */
 
     // Wrap the function to delay until
     // The page is fully loaded,
@@ -43,62 +47,90 @@ function whenSourceAvailable(name, f) {
     // For simplicity, assume filters have no async funny buisiness and
     // Are just hardcoded.
 
-    function runWhenPageLoaded() {
-        whenFullyLoaded(function () {
-            f();
-        })
-    }
+    function deferredWrapper() {
 
 
-    var already = [false]
+        function runWhenPageLoaded() {
+            whenFullyLoaded(function () {
+                f();
+            })
+        }
 
-    function make_ds_bg() {
-        getDataSource(name);
-    }
+
+        var already = [false]
+
+        function make_ds_bg() {
+            getDataSource(name);
+        }
 
 
-    function only_once_wrapper() {
-        // Make sure we only do this once
-        // Since we listen to multiple sources
-        if (already[0]) {
+        function only_once_wrapper() {
+            // Make sure we only do this once
+            // Since we listen to multiple sources
+            if (already[0]) {
+                return
+            }
+            already[0] = true
+            runWhenPageLoaded()
+        }
+
+        //If data source already exists, just execute
+        if (dataSources[name]) {
+            only_once_wrapper()
             return
         }
-        already[0] = true
-        runWhenPageLoaded()
-    }
-
-    //If data source already exists, just execute
-    if (dataSources[name]) {
-        only_once_wrapper()
-        return
-    }
 
 
-    if (!awaitingDataSource[name]) {
-        awaitingDataSource[name] = []
-    }
-    awaitingDataSource[name].push(only_once_wrapper)
+        if (!awaitingDataSource[name]) {
+            awaitingDataSource[name] = []
+        }
+        awaitingDataSource[name].push(only_once_wrapper)
 
 
-    // If provider that can handle the source exists
-    // Make it, it will do the rest when ready
-    if (name.includes(":")) {
-        if (dataSourceProviders[name.split(':')[0]]) {
-            make_ds_bg()
+        // If provider that can handle the source exists
+        // Make it, it will do the rest when ready
+        if (name.includes(":")) {
+            if (dataSourceProviders[name.split(':')[0]]) {
+                make_ds_bg()
+            }
+
         }
 
-    }
-
-    // Provider not found, we'll listen for it later
-    if (name.includes(":")) {
-        var pname = name.split(':')[0]
-        if (!awaitingDataSource[pname + ":*"]) {
-            awaitingDataSource[pname + ":*"] = []
+        // Provider not found, we'll listen for it later
+        if (name.includes(":")) {
+            var pname = name.split(':')[0]
+            if (!awaitingDataSource[pname + ":*"]) {
+                awaitingDataSource[pname + ":*"] = []
+            }
+            awaitingDataSource[pname + ":*"].push(make_ds_bg)
         }
-        awaitingDataSource[pname + ":*"].push(make_ds_bg)
     }
+    return deferredWrapper
 }
 
+
+function whenSourceAvailable(name, f) {
+    /*Runs f when the source is available. Source may be a list of names.
+      Empty names are ignored.
+    
+    */
+
+    if (typeof name == "string") {
+        {
+            name = [name]
+        }
+    }
+
+    for (var i of name) {
+        i = i || ''
+        if (i.length > 0) {
+            f = wrapDeferWhenSourceAvailable(i, f)
+        }
+    }
+
+    f()
+
+}
 
 async function addDataSourceProvider(name, cls) {
     dataSourceProviders[name] = cls
@@ -117,6 +149,7 @@ function getDataSource(ds_name) {
         }
         var ds = new cls(ds_name, {})
         ds.register()
+        ds.autoCreated = true
     }
     return dataSources[ds_name]
 }
@@ -250,101 +283,7 @@ class Filter {
 
 
 
-class BaseDashWidget extends HTMLElement {
-    onData(data) {
 
-    }
-
-    connectedCallback() {
-        this.innerHTML = "Awating Data Source"
-        async function f() {
-            this.source = picodash.getDataSource(this.getAttribute("source"))
-            //Mark it as able to be cleaned up
-            this.source.autoCreated = true
-
-            this.filterStack = []
-            var prev_filter = this.source
-
-            if (this.getAttribute("filter")) {
-                var fs = this.getAttribute("filter").split("|")
-                for (var i in fs) {
-                    prev_filter = getFilter(fs[i], prev_filter)
-                    this.filterStack.push(prev_filter)
-                }
-            }
-
-            async function f(data) {
-                data = await this.runFilterStack(data)
-                await this.onData(data)
-            }
-
-            this.setterFunc = f.bind(this)
-
-
-            async function push(newValue) {
-                var d = await this.runFilterStackReverse(newValue)
-                await this.source.pushData(d)
-            }
-
-            this.pushData = push.bind(this)
-            this.source.subscribe(this.setterFunc)
-            this.onDataReady()
-        }
-        f = f.bind(this)
-
-
-        whenSourceAvailable(this.getAttribute("source"), f)
-
-    }
-
-
-    async runFilterStackReverse(data) {
-        for (var i in this.filterStack) {
-            data = await this.filterStack[this.filterStack.length - 1 - i].set(data)
-        }
-        return data
-    }
-
-    async runFilterStack(data) {
-        for (var i in this.filterStack) {
-            data = await this.filterStack[i].get(data)
-        }
-        return data
-    }
-
-    getActiveConfig() {
-        /*Return the config of either the top filter in the stack,
-        or the source, if there are no filters.
-        */
-        if (this.filterStack.length > 0) {
-            return this.filterStack[this.filterStack.length - 1].config
-        }
-        else {
-            return this.source.config
-        }
-
-    }
-
-    disconnectedCallback() {
-        this.source.unsubscribe(this.setterFunc)
-        for (i in this.filterStack) {
-            this.filterStack[i].close()
-        }
-    }
-
-    async refresh() {
-        var data = await this.source.getData();
-        data = await this.runFilterStack(data)
-        return data
-    }
-    // adoptedCallback() {
-    //   console.log("Custom element moved to new page.");
-    // }
-
-    // attributeChangedCallback(name, oldValue, newValue) {
-    //   console.log(`Attribute ${name} has changed.`);
-    // }
-}
 
 
 
@@ -353,9 +292,9 @@ var picodash = {
     whenSourceAvailable: whenSourceAvailable,
     dataSourceProviders: dataSourceProviders,
     getDataSource: getDataSource,
-    BaseDashWidget: BaseDashWidget,
     DataSource: DataSource,
     Filter: Filter,
+    getFilter: getFilter,
     addFilterProvider: addFilterProvider,
     addDataSourceProvider: addDataSourceProvider
 }
