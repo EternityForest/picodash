@@ -76,14 +76,7 @@ THE SOFTWARE.
         center: true,
         right: true
     };
-    var themes = {
-        light: {
-            backgroundColor: '#fff',
-            textColor: '#000',
-            actionColor: '#008000'
-        },
-        dark: {}
-    };
+
     var Snackbar = function Snackbar(message, options) {
         var this$1 = this;
         if (options === void 0) options = {};
@@ -94,7 +87,7 @@ THE SOFTWARE.
             callback: function () { return this$1.destroy(); }
         }];
         var position = options.position; if (position === void 0) position = 'center';
-        var theme = options.theme; if (theme === void 0) theme = 'dark';
+
         var maxStack = options.maxStack; if (maxStack === void 0) maxStack = 3;
         this.message = message;
         this.options = {
@@ -102,7 +95,7 @@ THE SOFTWARE.
             actions: actions,
             position: position,
             maxStack: maxStack,
-            theme: typeof theme === 'string' ? themes[theme] : theme
+            accent: options.accent || null,
         };
         this.wrapper = this.getWrapper(this.options.position);
         this.insert();
@@ -110,11 +103,6 @@ THE SOFTWARE.
         this.stack();
     };
 
-    var prototypeAccessors = { theme: { configurable: true } };
-
-    prototypeAccessors.theme.get = function () {
-        return this.options.theme;
-    };
 
     Snackbar.prototype.getWrapper = function getWrapper(position) {
         var wrapper = document.querySelector((".snackbars-" + position));
@@ -136,30 +124,19 @@ THE SOFTWARE.
         el.setAttribute('aria-live', 'assertive');
         el.setAttribute('aria-atomic', 'true');
         el.setAttribute('aria-hidden', 'false');
-        var ref = this.theme;
-        var backgroundColor = ref.backgroundColor;
-        var textColor = ref.textColor;
-        var boxShadow = ref.boxShadow;
-        var actionColor = ref.actionColor;
         var container = document.createElement('div');
         container.className = 'snackbar--container';
 
-        if (backgroundColor) {
-            container.style.backgroundColor = backgroundColor;
-        }
 
-        if (textColor) {
-            container.style.color = textColor;
-        }
-
-        if (boxShadow) {
-            container.style.boxShadow = boxShadow;
-        }
 
         el.appendChild(container); // Append message
 
         var text = document.createElement('div');
         text.className = 'snackbar--text';
+
+        if (this.options.accent) {
+            text.className += " " + this.options.accent
+        }
 
         if (typeof this.message === 'string') {
             text.textContent = this.message;
@@ -173,22 +150,11 @@ THE SOFTWARE.
             var loop = function () {
                 var action = list[i];
 
-                var style = action.style;
                 var text$1 = action.text;
                 var callback = action.callback;
                 var button = document.createElement('button');
                 button.className = 'snackbar--button';
                 button.innerHTML = text$1;
-
-                if (actionColor) {
-                    button.style.color = actionColor;
-                }
-
-                if (style) {
-                    Object.keys(style).forEach(function (key) {
-                        button.style[key] = style[key];
-                    });
-                }
 
                 button.addEventListener('click', function () {
                     this$1.stopTimer();
@@ -337,7 +303,6 @@ THE SOFTWARE.
         }
     };
 
-    Object.defineProperties(Snackbar.prototype, prototypeAccessors);
 
     function getAnimationEvent(el) {
         var animations = {
