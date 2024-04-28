@@ -445,7 +445,8 @@ var picodash = {
     DataSource: DataSource,
     SimpleVariableDataSource: SimpleVariableDataSource,
     Filter: Filter,
-    addFilterProvider: addFilterProvider
+    addFilterProvider: addFilterProvider,
+    addDataSourceProvider: addDataSourceProvider
 }
 
 
