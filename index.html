@@ -3,13 +3,20 @@
 <script type="module">
     import picodash from "./dist/picodash-base.esm.js"
 
+    picodash.snackbar.createSnackbar('hello')
+
     var ds1 = new picodash.SimpleVariableDataSource("myDataSource", { step: 0.25 })
     await ds1.register()
-    ds1.pushData(10)
+    await ds1.pushData(10)
 
 
     var ds2 = new picodash.SimpleVariableDataSource("myDataSource2", {})
     await ds2.register()
+
+
+    var ds3 = new picodash.SimpleVariableDataSource("demo1", {})
+    await ds3.register()
+    await ds3.pushData(0)
 
     var count = [0]
 
@@ -80,8 +87,38 @@
                 <ds-input type="number" source="myDataSource" filter="mult: 50 | offset: 1000"></ds-input>
             </label>
 
+            <label>Trigger Buttons send an incrementing counter by default
+                <ds-button source="myDataSource">Press Me!</ds-button>
+            </label>
+
             <label>Scrolling log window(x5 multiplier filter)
                 <ds-logwindow source="myDataSource2" filter="mult: 5" class="scroll max-h-12rem"></ds-logwindow>
+            </label>
+        </div>
+    </section>
+
+    <section class="window margin">
+
+        <div class="stacked-form">
+
+            <label>Button can set this to a random value!
+                <ds-span source="demo1" filter="fixedpoint: 3"></ds-span>
+            </label>
+
+            <p>The button uses source-pressed to set a specific value,
+                which it gives the main source when pressed.
+            </p>
+            <p>
+                We multiply the rand val by 100. Our filter stack is "fixedpoint: 1 | mult: 0.01".
+            </p>
+            <p>
+                Note that the filters are the reverse
+                order of what you'd think, because we're going from widget to source.
+            </p>
+            <p>Filters only apply to the primary source.</p>
+            <label>
+                <ds-button source="demo1" source-pressed="random:" filter="fixedpoint: 1 | mult: 0.01">Press
+                    Me!</ds-button>
             </label>
         </div>
     </section>

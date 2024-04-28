@@ -6,7 +6,7 @@ See the [Demo!](https://eternityforest.github.io/picodash/)
 Picodash is a library for making dashboards.  It connects widgets to data sources,
 letting you build your dashboard in simple HTML.  
 
-Currently under 3k min+zip!
+Currently under 15k min+zip.
 
 It comes with some simple widgets and data sources, and makes it very easy to build more.
 
@@ -70,6 +70,12 @@ own config props with backend data.
 
 
 This is already a builtin data source provider, but let's see how it works:
+
+
+By data sources currently record the last 100 values as [Date, val] pairs.
+
+getHistory() will return these as a list, from oldest to newest.  You can override
+this to fetch server-side history.
 
 ```js
 class FixedDataSource extends picodash.DataSource {
@@ -137,13 +143,15 @@ A widget is just an HTML custom element.  Use any framework or no framework.
 ```js
 class SpanDashWidget extends picodash.BaseDashWidget {
     async onData(data) {
-        // Called by the framework with new data
+        // Called by the framework with new data.
+        // The data here will always be filtered.
         this.innerText = data
     }
 
     async onDataReady() {
         // Called when this.source is ready
-        var x = await this.source.getData()
+        // Refresh returns filtered data.
+        var x = await this.refresh()
         await this.onData(x)
     }
 }
@@ -164,6 +172,14 @@ features beyond this.
 Gets either the top filter in the stack's config, or the data sources config
 if there are none.  This lets you figure out things like the min/max range
 and whether the val is readonly.
+
+
+### widget.pushData(data)
+
+Called by your code in the widget to push new data to the source.
+Data must be unfiltered, all the filters in the filter stack are automatically
+applied in reverse order.
+
 
 ### Builtin Widgets
 
