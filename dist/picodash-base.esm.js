@@ -1,131 +1,140 @@
 const css = `
+
 .snackbars {
-  display: block;
-  position: fixed;
-  left: 0;
-  bottom: 0;
-  width: 100vw;
-  height: 0;
-  z-index: 100;
-  overflow: visible;
+    display: block;
+    position: fixed;
+    left: 0;
+    bottom: 0;
+    width: 100vw;
+    height: 0;
+    z-index: 100;
+    overflow: visible;
 }
 
-.snackbar {
-  position: absolute;
-  box-sizing: border-box;
-  left: 1%;
-  bottom: 48px;
-  width: 98%;
-  transform-origin: center;
-  will-change: transform;
-  transition: transform 300ms ease, opacity 300ms ease;
-}
+@scope (.snackbars) {
+    :scope{
+        --box-bg: var(--grey-2);
+        --fg: var(--black-1);
+        --border-radius: 20px;
+        --control-border-radius: 20px;
+    }
 
-.snackbar[aria-hidden='false'] {
-  -webkit-animation: snackbar-show 300ms ease 1;
-          animation: snackbar-show 300ms ease 1;
-}
+    .snackbar {
+    position: absolute;
+    box-sizing: border-box;
+    left: 1.5%;
+    bottom: 48px;
+    width: 96%;
+    transform-origin: center;
+    will-change: transform;
+    transition: transform 300ms ease, opacity 300ms ease;
+    }
 
-.snackbar[aria-hidden='true'] {
-  -webkit-animation: snackbar-hide 300ms ease forwards 1;
-          animation: snackbar-hide 300ms ease forwards 1;
-}
+    .snackbar[aria-hidden='false'] {
+    -webkit-animation: snackbar-show 300ms ease 1;
+            animation: snackbar-show 300ms ease 1;
+    }
 
-@-webkit-keyframes snackbar-show {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 100%, 0)
-  }
-}
+    .snackbar[aria-hidden='true'] {
+    -webkit-animation: snackbar-hide 300ms ease forwards 1;
+            animation: snackbar-hide 300ms ease forwards 1;
+    }
 
-@keyframes snackbar-show {
-  from {
-    opacity: 0;
-    transform: translate3d(0, 100%, 0)
-  }
-}
+    @-webkit-keyframes snackbar-show {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 100%, 0)
+    }
+    }
 
-@-webkit-keyframes snackbar-hide {
-  to {
-    opacity: 0;
-    transform: translateY(100%);
-  }
-}
+    @keyframes snackbar-show {
+    from {
+        opacity: 0;
+        transform: translate3d(0, 100%, 0)
+    }
+    }
 
-@keyframes snackbar-hide {
-  to {
-    opacity: 0;
-    transform: translateY(100%);
-  }
-}
+    @-webkit-keyframes snackbar-hide {
+    to {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+    }
+
+    @keyframes snackbar-hide {
+    to {
+        opacity: 0;
+        transform: translateY(100%);
+    }
+    }
 
 
-.snackbar--container {
-  display: flex;
-  background: #2a2a2a;
-  border-radius: 2px;
-  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
-  color: #eee;
-  cursor: default;
-  margin-bottom: 10px;
-}
+    .snackbar--container {
+    display: flex;
+    background: var(--box-bg);
+    border-radius: var(--border-radius);
+    box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
+    color: var(--fg);
+    cursor: default;
+    margin-bottom: 10px;
+    }
 
-.snackbar--text {
-  flex: 1 1 auto;
-  padding: 16px;
-  font-size: 100%;
-}
+    .snackbar--text {
+    flex: 1 1 auto;
+    padding: 16px;
+    font-size: 100%;
+    border-radius: var(--border-radius) 0px 0px var(--border-radius);
+    }
 
-.snackbar--button {
-  position: relative;
-  flex: 0 1 auto;
-  padding: 8px;
-  height: 36px;
-  margin: auto 8px auto -8px;
-  min-width: 5em;
-  background: none;
-  border: none;
-  border-radius: 3px;
-  color: lightgreen;
-  font-weight: inherit;
-  letter-spacing: 0.05em;
-  font-size: 100%;
-  text-transform: uppercase;
-  text-align: center;
-  cursor: pointer;
-  overflow: hidden;
-  transition: background-color 200ms ease;
-  outline: none;
-}
-.snackbar--button:hover {
-  background-color: rgba(0, 0, 0, 0.15);
-}
-.snackbar--button:focus:before {
-  content: '';
-  position: absolute;
-  left: 50%;
-  top: 50%;
-  width: 120%;
-  height: 0;
-  padding: 0 0 120%;
-  margin: -60% 0 0 -60%;
-  background: rgba(255, 255, 255, 0.1);
-  border-radius: 50%;
-  transform-origin: center;
-  will-change: transform;
-  -webkit-animation: focus-ring 300ms ease-out forwards 1;
-          animation: focus-ring 300ms ease-out forwards 1;
-  pointer-events: none;
-}
-@-webkit-keyframes focus-ring {
-  from {
-    transform: scale(0.01);
-  }
-}
-@keyframes focus-ring {
-  from {
-    transform: scale(0.01);
-  }
+    .snackbar--button {
+    position: relative;
+    flex: 0 1 auto;
+    height: 36px;
+    margin: auto 8px auto 8px;
+    min-width: 5em;
+    background: none;
+    border: 1px solid;
+    border-radius: var(--control-border-radius);
+    font-weight: inherit;
+    letter-spacing: 0.05em;
+    font-size: 100%;
+    text-transform: uppercase;
+    text-align: center;
+    cursor: pointer;
+    overflow: hidden;
+    transition: background-color 200ms ease;
+    outline: none;
+    }
+    .snackbar--button:hover {
+    background-color: rgba(0, 0, 0, 0.15);
+    }
+    .snackbar--button:focus:before {
+    content: '';
+    position: absolute;
+    left: 50%;
+    top: 50%;
+    width: 120%;
+    height: 0;
+    padding: 0 0 120%;
+    margin: -60% 0 0 -60%;
+    background: rgba(255, 255, 255, 0.1);
+    border-radius: 50%;
+    transform-origin: center;
+    will-change: transform;
+    -webkit-animation: focus-ring 300ms ease-out forwards 1;
+            animation: focus-ring 300ms ease-out forwards 1;
+    pointer-events: none;
+    }
+    @-webkit-keyframes focus-ring {
+    from {
+        transform: scale(0.01);
+    }
+    }
+    @keyframes focus-ring {
+    from {
+        transform: scale(0.01);
+    }
+    }
 }
 `;
 
@@ -205,14 +214,7 @@ THE SOFTWARE.
         center: true,
         right: true
     };
-    var themes = {
-        light: {
-            backgroundColor: '#fff',
-            textColor: '#000',
-            actionColor: '#008000'
-        },
-        dark: {}
-    };
+
     var Snackbar = function Snackbar(message, options) {
         var this$1$1 = this;
         if (options === void 0) options = {};
@@ -223,7 +225,7 @@ THE SOFTWARE.
             callback: function () { return this$1$1.destroy(); }
         }];
         var position = options.position; if (position === void 0) position = 'center';
-        var theme = options.theme; if (theme === void 0) theme = 'dark';
+
         var maxStack = options.maxStack; if (maxStack === void 0) maxStack = 3;
         this.message = message;
         this.options = {
@@ -231,7 +233,7 @@ THE SOFTWARE.
             actions: actions,
             position: position,
             maxStack: maxStack,
-            theme: typeof theme === 'string' ? themes[theme] : theme
+            accent: options.accent || null,
         };
         this.wrapper = this.getWrapper(this.options.position);
         this.insert();
@@ -239,11 +241,6 @@ THE SOFTWARE.
         this.stack();
     };
 
-    var prototypeAccessors = { theme: { configurable: true } };
-
-    prototypeAccessors.theme.get = function () {
-        return this.options.theme;
-    };
 
     Snackbar.prototype.getWrapper = function getWrapper(position) {
         var wrapper = document.querySelector((".snackbars-" + position));
@@ -265,30 +262,19 @@ THE SOFTWARE.
         el.setAttribute('aria-live', 'assertive');
         el.setAttribute('aria-atomic', 'true');
         el.setAttribute('aria-hidden', 'false');
-        var ref = this.theme;
-        var backgroundColor = ref.backgroundColor;
-        var textColor = ref.textColor;
-        var boxShadow = ref.boxShadow;
-        var actionColor = ref.actionColor;
         var container = document.createElement('div');
         container.className = 'snackbar--container';
 
-        if (backgroundColor) {
-            container.style.backgroundColor = backgroundColor;
-        }
 
-        if (textColor) {
-            container.style.color = textColor;
-        }
-
-        if (boxShadow) {
-            container.style.boxShadow = boxShadow;
-        }
 
         el.appendChild(container); // Append message
 
         var text = document.createElement('div');
         text.className = 'snackbar--text';
+
+        if (this.options.accent) {
+            text.className += " " + this.options.accent;
+        }
 
         if (typeof this.message === 'string') {
             text.textContent = this.message;
@@ -302,22 +288,11 @@ THE SOFTWARE.
             var loop = function () {
                 var action = list[i];
 
-                var style = action.style;
                 var text$1 = action.text;
                 var callback = action.callback;
                 var button = document.createElement('button');
                 button.className = 'snackbar--button';
                 button.innerHTML = text$1;
-
-                if (actionColor) {
-                    button.style.color = actionColor;
-                }
-
-                if (style) {
-                    Object.keys(style).forEach(function (key) {
-                        button.style[key] = style[key];
-                    });
-                }
 
                 button.addEventListener('click', function () {
                     this$1$1.stopTimer();
@@ -466,7 +441,6 @@ THE SOFTWARE.
         }
     };
 
-    Object.defineProperties(Snackbar.prototype, prototypeAccessors);
 
     function getAnimationEvent(el) {
         var animations = {
@@ -839,7 +813,7 @@ class BaseDashWidget extends HTMLElement {
         const d = await this.runFilterStackReverse(newValue);
 
         if (d == null || d === undefined) {
-          picodash.snackbar.createSnackbar("Value not set!", { theme: { backgroundColor: 'darkred' } });
+          picodash.snackbar.createSnackbar("Value not set!", { accent: 'warning', timeout: 5000 });
           return null
         }
 
