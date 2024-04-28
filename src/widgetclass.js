@@ -56,7 +56,7 @@ class BaseDashWidget extends HTMLElement {
         const d = await this.runFilterStackReverse(newValue)
 
         if (d == null || d === undefined) {
-          picodash.snackbar.createSnackbar("Value not set!", { theme: { backgroundColor: 'darkred' } })
+          picodash.snackbar.createSnackbar("Value not set!", { accent: 'warning', timeout: 5000 })
           return null
         }
 

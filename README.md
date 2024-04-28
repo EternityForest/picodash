@@ -293,6 +293,39 @@ Usable in datasource.config or filter.config. All keys optional.
 
 Set the range, min increment to snap to,  and optimal range of a numeric value.
 
+
+## Snackbars
+
+Snackbar code was adapted from: https://snackbar.egoist.dev/
+
+
+Manually launch a snackbar.  The "accent" setting just applies that CSS class to
+the div containing the text.  Barrel.css styles warning, danger, highlight, and success,
+if not using barrel you'll need your own classes and rules.
+
+```js
+ picodash.snackbar.createSnackbar("Value not set!", { accent: 'warning',
+             timeout: 5000 })
+```
+
+### Theming snackbars
+
+Picodash understands these CSS variables, which means it will respond to
+barrel.css themes and a few other frameworks, but you can also just set them manually.
+
+Only the snackbars use them, most everything else in the base set renders as raw semantic HTML.
+
+Every snackbar will be a .snackbar class, in a global .snackbars element, if you want
+to do any further CSS targeting.
+
+:scope{
+    --box-bg: var(--grey-2);
+    --fg: var(--black-1);
+    --border-radius: 20px;
+    --control-border-radius: 20px;
+}
+
+
 ## Building
 
 ```bash
