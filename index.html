@@ -3,6 +3,8 @@
 <script type="module">
     import picodash from "./dist/picodash-base.esm.js"
 
+    picodash.snackbar.createSnackbar('hello')
+
     var ds1 = new picodash.SimpleVariableDataSource("myDataSource", { step: 0.25 })
     await ds1.register()
     await ds1.pushData(10)

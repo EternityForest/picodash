@@ -3,6 +3,10 @@
 /* Picodash: A Minimalist dashboard framework
 */
 
+import "./snackbar_css"
+import "./snackbar_lib"
+import snackbar from "./snackbar_lib"
+
 const dataSources = {}
 const dataSourceProviders = {}
 const filterProviders = {}
@@ -10,11 +14,11 @@ const awaitingDataSource = {}
 
 const fullyLoaded = [0]
 
-function addFilterProvider (name, cls) {
+function addFilterProvider(name, cls) {
   filterProviders[name] = cls
 }
 
-function whenFullyLoaded (f) {
+function whenFullyLoaded(f) {
   if (fullyLoaded[0] === 1) {
     f()
   } else {
@@ -28,7 +32,7 @@ document.addEventListener('DOMContentLoaded', function (event) {
   fullyLoaded[0] = 1
 })
 
-function wrapDeferWhenSourceAvailable (name, f) {
+function wrapDeferWhenSourceAvailable(name, f) {
   /* Given f, return another function that will call f
      when the data source is available
      */
@@ -41,8 +45,8 @@ function wrapDeferWhenSourceAvailable (name, f) {
   // For simplicity, assume filters have no async funny buisiness and
   // Are just hardcoded.
 
-  function deferredWrapper () {
-    function runWhenPageLoaded () {
+  function deferredWrapper() {
+    function runWhenPageLoaded() {
       whenFullyLoaded(function () {
         f()
       })
@@ -50,11 +54,11 @@ function wrapDeferWhenSourceAvailable (name, f) {
 
     const already = [false]
 
-    function makeDataSourceInBg () {
+    function makeDataSourceInBg() {
       getDataSource(name)
     }
 
-    function onlyOnceWrapper () {
+    function onlyOnceWrapper() {
       // Make sure we only do this once
       // Since we listen to multiple sources
       if (already[0]) {
@@ -95,7 +99,7 @@ function wrapDeferWhenSourceAvailable (name, f) {
   return deferredWrapper
 }
 
-function whenSourceAvailable (name, f) {
+function whenSourceAvailable(name, f) {
   /* Runs f when the source is available. Source may be a list of names.
       Empty names are ignored.
 
@@ -115,7 +119,7 @@ function whenSourceAvailable (name, f) {
   f()
 }
 
-async function addDataSourceProvider (name, cls) {
+async function addDataSourceProvider(name, cls) {
   dataSourceProviders[name] = cls
   if (awaitingDataSource[name + ':*']) {
     while (awaitingDataSource[name + ':*'].length > 0) {
@@ -124,7 +128,7 @@ async function addDataSourceProvider (name, cls) {
   }
 }
 
-function getDataSource (dsName) {
+function getDataSource(dsName) {
   if (!dataSources[dsName]) {
     const CLS = dataSourceProviders[dsName.split(':')[0]]
     if (!CLS) {
@@ -137,7 +141,7 @@ function getDataSource (dsName) {
   return dataSources[dsName]
 }
 
-function getFilter (filterName, prevInChain) {
+function getFilter(filterName, prevInChain) {
   // Previous in chain is optional, and may
   // Either be a data source or a filter
   filterName = filterName.trim()
@@ -145,7 +149,7 @@ function getFilter (filterName, prevInChain) {
 }
 
 class DataSource {
-  constructor (name, config) {
+  constructor(name, config) {
     if (dataSources[name]) {
       throw new Error('Duplicate data source name: ' + name)
     }
@@ -160,18 +164,18 @@ class DataSource {
     this.history = []
   }
 
-  async getData () {
+  async getData() {
   }
 
-  async getHistory () {
+  async getHistory() {
     return this.history
   }
 
-  async register () {
+  async register() {
 
   }
 
-  async ready () {
+  async ready() {
     dataSources[this.name] = this
     if (awaitingDataSource[this.name]) {
       while (awaitingDataSource[this.name].length > 0) {
@@ -180,15 +184,15 @@ class DataSource {
     }
   }
 
-  subscribe (fn) {
+  subscribe(fn) {
     this.users.push(fn)
   }
 
-  unsubscribe (fn) {
+  unsubscribe(fn) {
     this.users = this.users.filter(user => user !== fn)
 
     // If there are still no users after 15s, then we remove the data source
-    function f () {
+    function f() {
       if (this.users.length === 0) {
         if (this.autoCreated) {
           this.close()
@@ -203,7 +207,7 @@ class DataSource {
     this._gc_timer = setTimeout(f.bind(this), 15000)
   }
 
-  async pushData (data) {
+  async pushData(data) {
     /*
         Used to push data to all interested widgets
         */
@@ -224,12 +228,12 @@ class DataSource {
     }
   }
 
-  close () {
+  close() {
   }
 }
 
 class Filter {
-  constructor (s, cfg, prev) {
+  constructor(s, cfg, prev) {
     this.config = cfg
 
     // One read only carries forward
@@ -249,17 +253,17 @@ class Filter {
     this.args = s.split(' ')
   }
 
-  async get (unfiltered) {
+  async get(unfiltered) {
     // Takes a val in unfiltered format and returns a new one in filtered
     return unfiltered
   }
 
-  async set (val) {
+  async set(val) {
     // Takes a val in filter format and returns a new one in unfiltered
     return val
   }
 
-  async close () {
+  async close() {
 
   }
 }
@@ -273,7 +277,8 @@ const picodash = {
   Filter,
   getFilter,
   addFilterProvider,
-  addDataSourceProvider
+  addDataSourceProvider,
+  snackbar
 }
 
 export default picodash

@@ -6,7 +6,7 @@ See the [Demo!](https://eternityforest.github.io/picodash/)
 Picodash is a library for making dashboards.  It connects widgets to data sources,
 letting you build your dashboard in simple HTML.  
 
-Currently under 3k min+zip!
+Currently under 15k min+zip.
 
 It comes with some simple widgets and data sources, and makes it very easy to build more.
 
