@@ -190,7 +190,7 @@ class DataSource {
         */
 
         // Fix out of order data
-        var n = Date.now()
+        var n = new Date()
 
         this.history.push([n, data])
         this.history = this.history.slice(-100)
@@ -351,9 +351,7 @@ class BaseDashWidget extends HTMLElement {
             }
 
             async function f(data) {
-                for (var i in this.filterStack) {
-                    data = await this.filterStack[i].get(data)
-                }
+                data = await this.runFilterStack(data)
                 await this.onData(data)
             }
 
@@ -361,10 +359,7 @@ class BaseDashWidget extends HTMLElement {
 
 
             async function push(newValue) {
-                var d = newValue
-                for (i in this.filterStack) {
-                    d = await this.filterStack[this.filterStack.length - 1 - i].set(d)
-                }
+                var d = await this.runFilterStackReverse(newValue)
                 await this.source.pushData(d)
             }
 
@@ -377,6 +372,21 @@ class BaseDashWidget extends HTMLElement {
 
         whenSourceAvailable(this.getAttribute("source"), f)
 
+    }
+
+
+    async runFilterStackReverse(data) {
+        for (var i in this.filterStack) {
+            data = await this.filterStack[this.filterStack.length - 1 - i].set(data)
+        }
+        return data
+    }
+
+    async runFilterStack(data) {
+        for (var i in this.filterStack) {
+            data = await this.filterStack[i].get(data)
+        }
+        return data
     }
 
     getActiveConfig() {
@@ -401,9 +411,7 @@ class BaseDashWidget extends HTMLElement {
 
     async refresh() {
         var data = await this.source.getData();
-        for (var i in this.filterStack) {
-            data = await this.filterStack[i].get(data)
-        }
+        data = await this.runFilterStack(data)
         return data
     }
     // adoptedCallback() {
@@ -611,18 +619,24 @@ class LogWindowDashWidget extends BaseDashWidget {
 
     async onDataReady() {
         this.innerHTML = ''
-        for (i in this.source.getHistory()) {
+        var history = await this.source.getHistory()
+
+        for (var i in history) {
             var v = document.createElement("article")
             var p = document.createElement("p")
             var h = document.createElement("header")
 
-            var d = this.source.getHistory()[i][0]
+            var d = history[i][0]
             h.innerText = d.toLocaleString()
-            p.innerText = this.source.getHistory()[i][1]
+
+            var txt = history[i][1]
+            txt = await this.runFilterStack(txt)
+            p.innerText = txt
             v.appendChild(h)
 
             v.appendChild(p)
-            this.appendChild(v)
+            this.insertAdjacentElement('afterbegin', v)
+
         }
     }
 }

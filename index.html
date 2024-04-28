@@ -21,7 +21,7 @@
         ds2.pushData(count[0])
         count[0] += 1
 
-    }, 250)
+    }, 2500)
 
 
     class Nop extends picodash.Filter {
@@ -82,8 +82,8 @@
                 <ds-input type="number" source="myDataSource" filter="mult: 50 | offset: 1000"></ds-input>
             </label>
 
-            <label>Scrolling log window
-                <ds-logwindow source="myDataSource2" class="scroll max-h-12rem"></ds-logwindow>
+            <label>Scrolling log window(x5 multiplier filter)
+                <ds-logwindow source="myDataSource2" filter="mult: 5" class="scroll max-h-12rem"></ds-logwindow>
             </label>
         </div>
     </section>
