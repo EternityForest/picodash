@@ -4,18 +4,18 @@ const css = `
   position: fixed;
   left: 0;
   bottom: 0;
-  width: 100%;
+  width: 100vw;
   height: 0;
   z-index: 100;
   overflow: visible;
 }
 
 .snackbar {
-  position: fixed;
+  position: absolute;
   box-sizing: border-box;
-  left: 2%;
-  bottom: 14px;
-  width: 96%;
+  left: 1%;
+  bottom: 48px;
+  width: 98%;
   transform-origin: center;
   will-change: transform;
   transition: transform 300ms ease, opacity 300ms ease;
