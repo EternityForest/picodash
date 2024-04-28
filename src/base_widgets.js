@@ -1,6 +1,46 @@
 import picodash from "./picodash";
 
 
+class ButtonDashWidget extends picodash.BaseDashWidget {
+    async onData(data) {
+        try {
+            this.data = parseFloat(data)
+        }
+        catch (e) {
+            console.log(e)
+        }
+
+    }
+
+    async onDataReady() {
+        var x = await this.refresh()
+        await this.onData(x)
+    }
+
+    connectedCallback() {
+        super.connectedCallback()
+        var b = document.createElement("button")
+        b.onclick = async () => {
+            await this.pushData(this.data + 1)
+        }
+        this.appendChild(b)
+
+        var observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+                if (mutation.addedNodes.length)
+                    var n = mutation.addedNodes[0]
+                this.removeChild(n)
+                this.buttonEl.appendChild(n)
+            })
+        })
+
+        observer.observe(this, { childList: true })
+    }
+}
+customElements.define("ds-button", ButtonDashWidget);
+
+
+
 class SpanDashWidget extends picodash.BaseDashWidget {
     async onData(data) {
         this.innerText = data

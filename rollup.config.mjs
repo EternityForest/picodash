@@ -14,7 +14,9 @@ export default {
             file: 'dist/picodash-base.min.esm.js',
             format: 'es',
             name: 'version',
-            plugins: [terser()]
+            plugins: [terser()
+            ]
+
         }
     ],
     plugins: [json()]

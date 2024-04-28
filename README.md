@@ -71,6 +71,12 @@ own config props with backend data.
 
 This is already a builtin data source provider, but let's see how it works:
 
+
+By data sources currently record the last 100 values as [Date, val] pairs.
+
+getHistory() will return these as a list, from oldest to newest.  You can override
+this to fetch server-side history.
+
 ```js
 class FixedDataSource extends picodash.DataSource {
 

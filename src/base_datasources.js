@@ -57,7 +57,7 @@ class FixedDataSource extends picodash.DataSource {
 }
 
 
-class SimpleVariableDataSource extends DataSource {
+class SimpleVariableDataSource extends picodash.DataSource {
     constructor(name, config) {
         super(name, config);
         this.data = config['default'] || ""

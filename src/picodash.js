@@ -1,3 +1,5 @@
+// SPDX-License-Identifier: MIT
+
 /* Picodash: A Minimalist dashboard framework
 */
 
