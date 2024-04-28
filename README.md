@@ -180,6 +180,9 @@ Called by your code in the widget to push new data to the source.
 Data must be unfiltered, all the filters in the filter stack are automatically
 applied in reverse order.
 
+Returns the filtered data that was pushed.  If it's null, then
+you know the push failed because a filter blocked it, probably because the user
+cancelled a confirm: filter.
 
 ### Builtin Widgets
 
@@ -201,6 +204,9 @@ Just a span that shows the data.
 
 Filters convert between filtered and unfiltered versions of a value.
 They are usually two-way, but you can build one-way filters if needed.
+
+Filters can also block a value completely, by returning null.  In this case,
+the value will not be set, and a notification will pop up.
 
 They take a space-separated set of arguments.
 
@@ -257,6 +263,25 @@ Use your filter
     <ds-input type="number" source="myDataSource" filter="mult: 5"></ds-input>
 </label>
 ```
+
+### Builtin filters
+
+#### mult: val
+
+#### offset: val
+
+#### confirm: text
+Requires the user to confirm before setting value
+
+#### notify: text
+Snackbar every time val changes
+
+#### vibrate:
+
+Vibrate 200ms when val changes
+
+
+
 
 
 ## Config Keys

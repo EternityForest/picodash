@@ -3,8 +3,6 @@
 <script type="module">
     import picodash from "./dist/picodash-base.esm.js"
 
-    picodash.snackbar.createSnackbar('hello')
-
     var ds1 = new picodash.SimpleVariableDataSource("myDataSource", { step: 0.25 })
     await ds1.register()
     await ds1.pushData(10)
@@ -119,6 +117,34 @@
             <label>
                 <ds-button source="demo1" source-pressed="random:" filter="fixedpoint: 1 | mult: 0.01">Press
                     Me!</ds-button>
+            </label>
+        </div>
+    </section>
+
+
+    <script type="module">
+        import picodash from "./dist/picodash-base.esm.js"
+        let ds4 = new picodash.SimpleVariableDataSource('snackbar', {})
+        ds4.register()
+
+        let ds5 = new picodash.SimpleVariableDataSource('vib', {})
+        ds5.register()
+    </script>
+    <section class="window margin">
+        <div class="stacked-form">
+            <p>When this value changes, put up a snackbar</p>
+            <label>text
+
+                <ds-input source="snackbar" filter="notify: You changed the value!"></ds-input>
+            </label>
+
+            <label>Vibrate on change with the vibrate: filter
+                <ds-input source="vib" filter="vibrate:"></ds-input>
+            </label>
+
+
+            <label>Require confirmation
+                <ds-input source="vib" filter="confirm: Really change value?"></ds-input>
             </label>
         </div>
     </section>
