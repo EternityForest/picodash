@@ -784,26 +784,26 @@ const picodash = {
 };
 
 class BaseDashWidget extends HTMLElement {
-  onData (data) {
+  onData(data) {
 
   }
 
-  onExtraData (src, data) {
+  onExtraData(src, data) {
 
   }
 
-  _subscribeToExtraSource (srcname) {
+  _subscribeToExtraSource(srcname) {
     const s = this.extraSources[srcname];
-    function f (data) {
+    function f(data) {
       this.onExtraData(srcname, data);
     }
     this.extraSourceSubscribers[srcname] = f;
     s.subscribe(f.bind(this));
   }
 
-  connectedCallback () {
+  connectedCallback() {
     this.innerHTML = 'Awating Data Source';
-    async function f () {
+    async function f() {
       this.source = picodash.getDataSource(this.getAttribute('source'));
 
       this.extraSources = {};
@@ -828,16 +828,23 @@ class BaseDashWidget extends HTMLElement {
         }
       }
 
-      async function f (data) {
+      async function f(data) {
         data = await this.runFilterStack(data);
         await this.onData(data);
       }
 
       this.setterFunc = f.bind(this);
 
-      async function push (newValue) {
+      async function push(newValue) {
         const d = await this.runFilterStackReverse(newValue);
+
+        if (d == null || d === undefined) {
+          picodash.snackbar.createSnackbar("Value not set!", { theme: { backgroundColor: 'darkred' } });
+          return null
+        }
+
         await this.source.pushData(d);
+        return d
       }
 
       this.pushData = push.bind(this);
@@ -859,21 +866,21 @@ class BaseDashWidget extends HTMLElement {
     picodash.whenSourceAvailable(waitFor, f.bind(this));
   }
 
-  async runFilterStackReverse (data) {
+  async runFilterStackReverse(data) {
     for (const i in this.filterStack) {
       data = await this.filterStack[this.filterStack.length - 1 - i].set(data);
     }
     return data
   }
 
-  async runFilterStack (data) {
+  async runFilterStack(data) {
     for (const i in this.filterStack) {
       data = await this.filterStack[i].get(data);
     }
     return data
   }
 
-  getActiveConfig () {
+  getActiveConfig() {
     /* Return the config of either the top filter in the stack,
         or the source, if there are no filters.
         */
@@ -884,7 +891,7 @@ class BaseDashWidget extends HTMLElement {
     }
   }
 
-  disconnectedCallback () {
+  disconnectedCallback() {
     this.source.unsubscribe(this.setterFunc);
     for (const i in this.filterStack) {
       this.filterStack[i].close();
@@ -894,7 +901,7 @@ class BaseDashWidget extends HTMLElement {
     }
   }
 
-  async refresh () {
+  async refresh() {
     let data = await this.source.getData();
     data = await this.runFilterStack(data);
     return data
@@ -904,183 +911,193 @@ class BaseDashWidget extends HTMLElement {
 picodash.BaseDashWidget = BaseDashWidget;
 
 class ButtonDashWidget extends BaseDashWidget {
-  async onData (data) {
-    try {
-      this.data = parseFloat(data);
-    } catch (e) {
-      console.log(e);
-    }
-  }
-
-  async onDataReady () {
-    this.innerHTML = '';
-    this.appendChild(this.buttonEl);
-
-    this.dummy = () => { };
-
-    const x = await this.refresh();
-    await this.onData(x);
-  }
-
-  connectedCallback () {
-    const x = [];
-    const b = document.createElement('button');
-    this.buttonEl = b;
-
-    // Move elements *before* the superclass adds the placeholder.
-    for (var i of this.childNodes) {
-      x.push(i);
-    }
-    for (var i of x) {
-      this.removeChild(i);
-      this.buttonEl.appendChild(i);
-    }
-
-    super.connectedCallback();
-
-    b.onclick = async () => {
-      if (this.extraSources.pressed) {
-        v = await this.extraSources.pressed.getData();
-      } else {
-        var v = this.data + 1;
-      }
-
-      await this.pushData(v);
-    };
-    this.appendChild(b);
-
-    const observer = new MutationObserver(function (mutations) {
-      mutations.forEach(function (mutation) {
-        if (mutation.addedNodes.length) {
-          for (const n of mutation.addedNodes) {
-            if (n.nodeName != 'BUTTON') {
-              this.removeChild(n);
-              this.buttonEl.appendChild(n);
-            }
-          }
+    async onData(data) {
+        try {
+            this.data = parseFloat(data);
+        } catch (e) {
+            console.log(e);
         }
-      });
-    });
+    }
 
-    observer.observe(this, { childList: true });
-  }
+    async onDataReady() {
+        this.innerHTML = '';
+        this.appendChild(this.buttonEl);
+
+        this.dummy = () => { };
+
+        const x = await this.refresh();
+        await this.onData(x);
+    }
+
+    connectedCallback() {
+        const x = [];
+        const b = document.createElement('button');
+        this.buttonEl = b;
+
+        // Move elements *before* the superclass adds the placeholder.
+        for (var i of this.childNodes) {
+            x.push(i);
+        }
+        for (var i of x) {
+            this.removeChild(i);
+            this.buttonEl.appendChild(i);
+        }
+
+        super.connectedCallback();
+
+        b.onclick = async () => {
+            if (this.extraSources.pressed) {
+                v = await this.extraSources.pressed.getData();
+            } else {
+                var v = this.data + 1;
+            }
+
+            await this.pushData(v);
+        };
+        this.appendChild(b);
+
+        const observer = new MutationObserver(function (mutations) {
+            mutations.forEach(function (mutation) {
+                if (mutation.addedNodes.length) {
+                    for (const n of mutation.addedNodes) {
+                        if (n.nodeName != 'BUTTON') {
+                            this.removeChild(n);
+                            this.buttonEl.appendChild(n);
+                        }
+                    }
+                }
+            });
+        });
+
+        observer.observe(this, { childList: true });
+    }
 }
 customElements.define('ds-button', ButtonDashWidget);
 
 class SpanDashWidget extends BaseDashWidget {
-  async onData (data) {
-    this.innerText = data;
-  }
+    async onData(data) {
+        this.innerText = data;
+    }
 
-  async onDataReady () {
-    const x = await this.refresh();
-    await this.onData(x);
-  }
+    async onDataReady() {
+        const x = await this.refresh();
+        await this.onData(x);
+    }
 }
 customElements.define('ds-span', SpanDashWidget);
 
 class MeterDashWidget extends BaseDashWidget {
-  async onDataReady () {
-    const m = document.createElement('meter');
-    this.meter = m;
-    const cfg = this.getActiveConfig();
+    async onDataReady() {
+        const m = document.createElement('meter');
+        this.meter = m;
+        const cfg = this.getActiveConfig();
 
-    this.meter.min = cfg.min || this.getAttribute('min') || -1;
-    this.meter.max = cfg.max || this.getAttribute('max') || 1;
-    this.meter.high = cfg.high || this.getAttribute('high') || 1000000000;
-    this.meter.low = cfg.low || this.getAttribute('low') || -1000000000;
-    this.meter.style.width = '100%';
-    this.innerHTML = '';
-    this.appendChild(m);
+        this.meter.min = cfg.min || this.getAttribute('min') || -1;
+        this.meter.max = cfg.max || this.getAttribute('max') || 1;
+        this.meter.high = cfg.high || this.getAttribute('high') || 1000000000;
+        this.meter.low = cfg.low || this.getAttribute('low') || -1000000000;
+        this.meter.style.width = '100%';
+        this.innerHTML = '';
+        this.appendChild(m);
 
-    const x = await this.refresh();
-    await this.onData(x);
-  }
+        const x = await this.refresh();
+        await this.onData(x);
+    }
 
-  async onData (data) {
-    this.meter.value = data;
-  }
+    async onData(data) {
+        this.meter.value = data;
+    }
 }
 
 customElements.define('ds-meter', MeterDashWidget);
 
 class InputDashWidget extends picodash.BaseDashWidget {
-  async onData (data) {
-    this.input.value = data;
-  }
-
-  async onDataReady () {
-    const cfg = this.getActiveConfig();
-
-    this.input = document.createElement('input');
-    if (cfg.readonly) {
-      this.input.disabled = true;
+    async onData(data) {
+        this.input.value = data;
+        this.lastVal = data;
     }
 
-    for (const i of ['min', 'max', 'high', 'low', 'step']) {
-      var x = cfg[i] || this.getAttribute('min');
+    async onDataReady() {
+        const cfg = this.getActiveConfig();
 
-      if (typeof x !== 'undefined') {
-        this.input[i] = x;
-      }
+        this.input = document.createElement('input');
+        if (cfg.readonly) {
+            this.input.disabled = true;
+        }
+
+        for (const i of ['min', 'max', 'high', 'low', 'step']) {
+            var x = cfg[i] || this.getAttribute('min');
+
+            if (typeof x !== 'undefined') {
+                this.input[i] = x;
+            }
+        }
+
+        this.input.type = this.getAttribute('type') || 'text';
+        this.innerHTML = '';
+        this.appendChild(this.input);
+        this.style.display = 'contents';
+
+        async function f(e) {
+            let rc = await this.pushData(this.input.value);
+
+            // Setting failed, return to the last good value
+            if (rc == null) {
+                this.input.value = this.lastVal;
+            }
+        }
+        this.input.onchange = f.bind(this);
+        var x = await this.refresh();
+        await this.onData(x);
     }
-
-    this.input.type = this.getAttribute('type') || 'text';
-    this.innerHTML = '';
-    this.appendChild(this.input);
-    this.style.display = 'contents';
-
-    function f (e) {
-      this.pushData(this.input.value);
-    }
-    this.input.onchange = f.bind(this);
-    var x = await this.refresh();
-    await this.onData(x);
-  }
 }
 customElements.define('ds-input', InputDashWidget);
 
 class LogWindowDashWidget extends BaseDashWidget {
-  onData (data, timestamp) {
-    const v = document.createElement('article');
-    const p = document.createElement('p');
-    const h = document.createElement('header');
+    onData(data, timestamp) {
+        const v = document.createElement('article');
+        const p = document.createElement('p');
+        const h = document.createElement('header');
 
-    const d = new Date();
-    h.innerText = d.toLocaleString();
-    p.innerText = data;
-    v.appendChild(h);
+        const d = new Date();
+        h.innerText = d.toLocaleString();
+        p.innerText = data;
+        v.appendChild(h);
 
-    v.appendChild(p);
+        v.appendChild(p);
 
-    this.insertBefore(v, this.children[0]);
+        this.insertBefore(v, this.children[0]);
 
-    if (this.childElementCount > 100) {
-      this.removeChild(this.children[this.childElementCount - 1]);
+        if (this.childElementCount > 100) {
+            this.removeChild(this.children[this.childElementCount - 1]);
+        }
     }
-  }
 
-  async onDataReady () {
-    this.innerHTML = '';
-    const history = await this.source.getHistory();
+    async onDataReady() {
+        this.innerHTML = '';
+        const history = await this.source.getHistory();
 
-    for (const i in history) {
-      const v = document.createElement('article');
-      const p = document.createElement('p');
-      const h = document.createElement('header');
+        for (const i in history) {
+            const v = document.createElement('article');
+            const p = document.createElement('p');
+            const h = document.createElement('header');
 
-      const d = history[i][0];
-      h.innerText = d.toLocaleString();
+            const d = history[i][0];
+            h.innerText = d.toLocaleString();
 
-      let txt = history[i][1];
-      txt = await this.runFilterStack(txt);
-      p.innerText = txt;
-      v.appendChild(h);
+            let txt = history[i][1];
+            txt = await this.runFilterStack(txt);
+            if (txt == null || txt === undefined) {
+                continue
+            }
 
-      v.appendChild(p);
-      this.insertAdjacentElement('afterbegin', v);
+            p.innerText = txt;
+            v.appendChild(h);
+
+            v.appendChild(p);
+            this.insertAdjacentElement('afterbegin', v);
+        }
     }
-  }
 }
 customElements.define('ds-logwindow', LogWindowDashWidget);
 
@@ -1163,8 +1180,118 @@ picodash.addDataSourceProvider('random', RandomDataSource);
 picodash.addDataSourceProvider('fixed', FixedDataSource);
 picodash.SimpleVariableDataSource = SimpleVariableDataSource;
 
+class Snackbar extends picodash.Filter {
+  constructor(s, cfg, prev) {
+    super(s, cfg, prev);
+    if (prev) {
+      this.config = prev.config;
+    }
+    this.lastData = null;
+
+    this.str = s.split(":")[1];
+  }
+
+  async notify() {
+    picodash.snackbar.createSnackbar(this.str, { timeout: 5000 });
+  }
+
+  async get(unfiltered) {
+    // Convert from unfiltered to filtered
+
+    if (this.lastData != null) {
+      if (this.lastData != unfiltered) {
+        this.notify();
+      }
+    }
+
+    this.lastData = unfiltered;
+    return this.lastData
+  }
+
+  async set(val) {
+    return (await this.get(val))
+  }
+}
+
+
+picodash.addFilterProvider('notify', Snackbar);
+
+
+class Vibrate extends Snackbar {
+  async notify() {
+    navigator.vibrate(200);
+  }
+}
+
+picodash.addFilterProvider('vibrate', Vibrate);
+
+
+
+class Confirm extends picodash.Filter {
+  constructor(s, cfg, prev) {
+    super(s, cfg, prev);
+    if (prev) {
+      this.config = prev.config;
+    }
+    this.str = s.split(":")[1];
+
+    this.cancel = null;
+  }
+
+
+  async get(unfiltered) {
+    return unfiltered
+  }
+
+  async set(val) {
+
+    // Get rid of the old one if any
+    if (this.cancel) {
+      this.cancel();
+      this.cancel = null;
+    }
+
+    let _this = this;
+    const promise1 = new Promise((resolve, reject) => {
+
+
+      let sb = picodash.snackbar.createSnackbar(_this.str, {
+        actions: [
+          {
+            text: 'Confirm',
+            callback(button, snackbar) {
+              snackbar.destroy();
+              resolve(val);
+            }
+          },
+          {
+            text: 'Cancel',
+            callback(button, snackbar) {
+              snackbar.destroy();
+              resolve(null);
+            }
+          }
+        ]
+      });
+
+      function cancel() {
+        sb.destroy();
+        resolve(null);
+      }
+
+      this.cancel = cancel;
+
+    });
+
+    return promise1
+  }
+}
+
+picodash.addFilterProvider('confirm', Confirm);
+
+
 class Mult extends picodash.Filter {
-  constructor (s, cfg, prev) {
+  constructor(s, cfg, prev) {
     super(s, cfg, prev);
     this.m = parseFloat(this.args[0]);
 
@@ -1177,19 +1304,19 @@ class Mult extends picodash.Filter {
     }
   }
 
-  async get (unfiltered) {
+  async get(unfiltered) {
     // Convert from unfiltered to filtered
     return unfiltered * this.m
   }
 
-  async set (val) {
+  async set(val) {
     // Convert from filtered to unfiltered
     return val / this.m
   }
 }
 
 class FixedPoint extends picodash.Filter {
-  constructor (s, cfg, prev) {
+  constructor(s, cfg, prev) {
     super(s, cfg, prev);
     if (prev) {
       this.config = prev.config;
@@ -1198,7 +1325,7 @@ class FixedPoint extends picodash.Filter {
     this.m = parseInt(this.args[0]);
   }
 
-  async get (unfiltered) {
+  async get(unfiltered) {
     // Convert from unfiltered to filtered
     try {
       return unfiltered.toFixed(parseFloat(this.m))
@@ -1208,14 +1335,14 @@ class FixedPoint extends picodash.Filter {
     }
   }
 
-  async set (val) {
+  async set(val) {
     // Convert from filtered to unfiltered
     return parseFloat(val)
   }
 }
 
 class Offset extends picodash.Filter {
-  constructor (s, cfg, prev) {
+  constructor(s, cfg, prev) {
     super(s, cfg, prev);
     this.m = parseFloat(this.args[0]);
     // Multiply config vals, so that widgets know
@@ -1232,12 +1359,12 @@ class Offset extends picodash.Filter {
     }
   }
 
-  async get (unfiltered) {
+  async get(unfiltered) {
     // Convert from unfiltered to filtered
     return unfiltered + this.m
   }
 
-  async set (val) {
+  async set(val) {
     // Convert from filtered to unfiltered
     return val - this.m
   }
