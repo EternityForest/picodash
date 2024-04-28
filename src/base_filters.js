@@ -1,7 +1,119 @@
 import picodash from './picodash'
 
+
+
+class Snackbar extends picodash.Filter {
+  constructor(s, cfg, prev) {
+    super(s, cfg, prev)
+    if (prev) {
+      this.config = prev.config
+    }
+    this.lastData = null
+
+    this.str = s.split(":")[1]
+  }
+
+  async notify() {
+    picodash.snackbar.createSnackbar(this.str, { timeout: 5000 })
+  }
+
+  async get(unfiltered) {
+    // Convert from unfiltered to filtered
+
+    if (this.lastData != null) {
+      if (this.lastData != unfiltered) {
+        this.notify()
+      }
+    }
+
+    this.lastData = unfiltered
+    return this.lastData
+  }
+
+  async set(val) {
+    return (await this.get(val))
+  }
+}
+
+
+picodash.addFilterProvider('notify', Snackbar)
+
+
+class Vibrate extends Snackbar {
+  async notify() {
+    navigator.vibrate(200)
+  }
+}
+
+picodash.addFilterProvider('vibrate', Vibrate)
+
+
+
+class Confirm extends picodash.Filter {
+  constructor(s, cfg, prev) {
+    super(s, cfg, prev)
+    if (prev) {
+      this.config = prev.config
+    }
+    this.str = s.split(":")[1]
+
+    this.cancel = null
+  }
+
+
+  async get(unfiltered) {
+    return unfiltered
+  }
+
+  async set(val) {
+
+    // Get rid of the old one if any
+    if (this.cancel) {
+      this.cancel()
+      this.cancel = null
+    }
+
+    let _this = this
+    const promise1 = new Promise((resolve, reject) => {
+
+
+      let sb = picodash.snackbar.createSnackbar(_this.str, {
+        actions: [
+          {
+            text: 'Confirm',
+            callback(button, snackbar) {
+              snackbar.destroy()
+              resolve(val)
+            }
+          },
+          {
+            text: 'Cancel',
+            callback(button, snackbar) {
+              snackbar.destroy()
+              resolve(null)
+            }
+          }
+        ]
+      })
+
+      function cancel() {
+        sb.destroy()
+        resolve(null)
+      }
+
+      this.cancel = cancel
+
+    });
+
+    return promise1
+  }
+}
+
+picodash.addFilterProvider('confirm', Confirm)
+
+
 class Mult extends picodash.Filter {
-  constructor (s, cfg, prev) {
+  constructor(s, cfg, prev) {
     super(s, cfg, prev)
     this.m = parseFloat(this.args[0])
 
@@ -14,19 +126,19 @@ class Mult extends picodash.Filter {
     }
   }
 
-  async get (unfiltered) {
+  async get(unfiltered) {
     // Convert from unfiltered to filtered
     return unfiltered * this.m
   }
 
-  async set (val) {
+  async set(val) {
     // Convert from filtered to unfiltered
     return val / this.m
   }
 }
 
 class FixedPoint extends picodash.Filter {
-  constructor (s, cfg, prev) {
+  constructor(s, cfg, prev) {
     super(s, cfg, prev)
     if (prev) {
       this.config = prev.config
@@ -35,7 +147,7 @@ class FixedPoint extends picodash.Filter {
     this.m = parseInt(this.args[0])
   }
 
-  async get (unfiltered) {
+  async get(unfiltered) {
     // Convert from unfiltered to filtered
     try {
       return unfiltered.toFixed(parseFloat(this.m))
@@ -45,14 +157,14 @@ class FixedPoint extends picodash.Filter {
     }
   }
 
-  async set (val) {
+  async set(val) {
     // Convert from filtered to unfiltered
     return parseFloat(val)
   }
 }
 
 class Offset extends picodash.Filter {
-  constructor (s, cfg, prev) {
+  constructor(s, cfg, prev) {
     super(s, cfg, prev)
     this.m = parseFloat(this.args[0])
     // Multiply config vals, so that widgets know
@@ -69,12 +181,12 @@ class Offset extends picodash.Filter {
     }
   }
 
-  async get (unfiltered) {
+  async get(unfiltered) {
     // Convert from unfiltered to filtered
     return unfiltered + this.m
   }
 
-  async set (val) {
+  async set(val) {
     // Convert from filtered to unfiltered
     return val - this.m
   }

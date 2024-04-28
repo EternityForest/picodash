@@ -1,26 +1,26 @@
 import picodash from './picodash'
 
 class BaseDashWidget extends HTMLElement {
-  onData (data) {
+  onData(data) {
 
   }
 
-  onExtraData (src, data) {
+  onExtraData(src, data) {
 
   }
 
-  _subscribeToExtraSource (srcname) {
+  _subscribeToExtraSource(srcname) {
     const s = this.extraSources[srcname]
-    function f (data) {
+    function f(data) {
       this.onExtraData(srcname, data)
     }
     this.extraSourceSubscribers[srcname] = f
     s.subscribe(f.bind(this))
   }
 
-  connectedCallback () {
+  connectedCallback() {
     this.innerHTML = 'Awating Data Source'
-    async function f () {
+    async function f() {
       this.source = picodash.getDataSource(this.getAttribute('source'))
 
       this.extraSources = {}
@@ -45,16 +45,23 @@ class BaseDashWidget extends HTMLElement {
         }
       }
 
-      async function f (data) {
+      async function f(data) {
         data = await this.runFilterStack(data)
         await this.onData(data)
       }
 
       this.setterFunc = f.bind(this)
 
-      async function push (newValue) {
+      async function push(newValue) {
         const d = await this.runFilterStackReverse(newValue)
+
+        if (d == null || d === undefined) {
+          picodash.snackbar.createSnackbar("Value not set!", { theme: { backgroundColor: 'darkred' } })
+          return null
+        }
+
         await this.source.pushData(d)
+        return d
       }
 
       this.pushData = push.bind(this)
@@ -76,21 +83,21 @@ class BaseDashWidget extends HTMLElement {
     picodash.whenSourceAvailable(waitFor, f.bind(this))
   }
 
-  async runFilterStackReverse (data) {
+  async runFilterStackReverse(data) {
     for (const i in this.filterStack) {
       data = await this.filterStack[this.filterStack.length - 1 - i].set(data)
     }
     return data
   }
 
-  async runFilterStack (data) {
+  async runFilterStack(data) {
     for (const i in this.filterStack) {
       data = await this.filterStack[i].get(data)
     }
     return data
   }
 
-  getActiveConfig () {
+  getActiveConfig() {
     /* Return the config of either the top filter in the stack,
         or the source, if there are no filters.
         */
@@ -101,7 +108,7 @@ class BaseDashWidget extends HTMLElement {
     }
   }
 
-  disconnectedCallback () {
+  disconnectedCallback() {
     this.source.unsubscribe(this.setterFunc)
     for (const i in this.filterStack) {
       this.filterStack[i].close()
@@ -111,7 +118,7 @@ class BaseDashWidget extends HTMLElement {
     }
   }
 
-  async refresh () {
+  async refresh() {
     let data = await this.source.getData()
     data = await this.runFilterStack(data)
     return data
