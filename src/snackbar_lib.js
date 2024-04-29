@@ -166,6 +166,9 @@ THE SOFTWARE.
                 button.className = 'snackbar--button';
                 button.innerHTML = text$1;
 
+                if (action.accent) {
+                    button.className += ' ' + action.accent
+                }
 
                 function click() {
                     this$1.stopTimer();
