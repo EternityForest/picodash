@@ -125,12 +125,26 @@ class InputDashWidget extends picodash.BaseDashWidget {
         }
 
         this.input.type = this.getAttribute('type') || 'text'
+        this.input.disabled = this.getAttribute('disabled') || false
+        this.input.placeholder = this.getAttribute('placeholder') || ''
+
+        if (this.getAttribute('list')) {
+            this.input.list = this.getAttribute('list') || ''
+        }
+
         this.innerHTML = ''
         this.appendChild(this.input)
         this.style.display = 'contents'
 
         async function f(e) {
-            let rc = await this.pushData(this.input.value)
+            let v = this.input.value
+
+            if (this.input.type == 'number') {
+                v = parseFloat(v)
+            }
+            // Get before set, some filters need to know the latest value
+            await this.refresh()
+            let rc = await this.pushData(v)
 
             // Setting failed, return to the last good value
             if (rc == null) {

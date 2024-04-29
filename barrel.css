@@ -401,6 +401,11 @@ p {
 /*Stack labels on the form elements*/
 label>:is(input:not(input[type=radio], input[type=checkbox]), select, button, div) {
     display: block;
+
+    &.flex-row,
+    &.flex-column {
+        display: flex;
+    }
 }
 
 label:has(*) {
@@ -458,9 +463,13 @@ select {
 }
 
 
-textarea:disabled {
-    background-color: color-mix(in srgb, var(--control-bg) 50%, var(--box-bg) 50%);
-    color: var(--control-fg);
+textarea:disabled,
+input:disabled,
+button:disabled {
+    &:not(.specificity_hack) {
+        background: color-mix(in srgb, var(--control-fg) 25%, var(--box-bg) 50%);
+        color: var(--control-fg);
+    }
 }
 
 details {
@@ -2613,6 +2622,12 @@ input[type="radio"] {
 }
 
 
+.numval,
+input[type="number"] {
+    font-family: Fira Code, monospace;
+
+}
+
 input[type='checkbox'].led {
     border-radius: 50%;
     margin: 0px 0px;
@@ -2789,7 +2804,8 @@ label {
 
 /* Loading spinner */
 
-[v-cloak] {
+[v-cloak],
+[x-cloak] {
     display: block;
     padding: 50px 0;
 }

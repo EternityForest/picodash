@@ -1,4 +1,5 @@
 import picodash from './picodash'
+import snackbar from './snackbar_lib'
 
 class BaseDashWidget extends HTMLElement {
   onData(data) {
@@ -60,7 +61,13 @@ class BaseDashWidget extends HTMLElement {
           return null
         }
 
-        await this.source.pushData(d)
+        try {
+          await this.source.pushData(d)
+        }
+        catch (e) {
+          picodash.snackbar.createSnackbar("Error setting value!", { accent: 'danger', timeout: 5000 })
+          throw e
+        }
         return d
       }
 
@@ -84,8 +91,14 @@ class BaseDashWidget extends HTMLElement {
   }
 
   async runFilterStackReverse(data) {
-    for (const i in this.filterStack) {
-      data = await this.filterStack[this.filterStack.length - 1 - i].set(data)
+    try {
+      for (const i in this.filterStack) {
+        data = await this.filterStack[this.filterStack.length - 1 - i].set(data)
+      }
+    }
+    catch (e) {
+      picodash.snackbar.createSnackbar("Value not set, likely invalid.", { accent: "error", timeout: 3000 })
+      throw e
     }
     return data
   }

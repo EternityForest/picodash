@@ -71,6 +71,7 @@ const css = `
 
     .snackbar--container {
     display: flex;
+    flex-wrap: wrap;
     background: var(--box-bg);
     border-radius: var(--border-radius);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
@@ -86,17 +87,26 @@ const css = `
     border-radius: var(--border-radius) 0px 0px var(--border-radius);
     }
 
+    .snackbar--input {
+        height: 36px;
+        margin: auto 3px auto 3px;
+        flex-grow: 3
+    }
+
     .snackbar--button {
     position: relative;
     flex: 0 1 auto;
     height: 36px;
-    margin: auto 8px auto 8px;
+    margin: auto 3px auto 3px;
     min-width: 5em;
     background: none;
     border: 1px solid;
     border-radius: var(--control-border-radius);
     font-weight: inherit;
-    letter-spacing: 0.05em;
+    padding-left: 3px;
+    padding-right: 3px;
+
+    letter-spacing: 0.02em;
     font-size: 100%;
     text-transform: uppercase;
     text-align: center;

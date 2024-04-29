@@ -1,6 +1,18 @@
 <link rel="stylesheet" type="text/css" href="barrel.css">
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+
+<script type="importmap">
+    {
+      "imports": {
+        "picodash": "./dist/picodash-base.esm.js",
+        "convert": "./plugins/convert.min.js"
+      }
+    }
+</script>
+
+<script type="module" src="./plugins/picodash-units.js"></script>
+
 <script type="module">
     import picodash from "./dist/picodash-base.esm.js"
 
@@ -147,6 +159,74 @@
             <label>Require confirmation
                 <ds-input source="vib" filter="confirm: Really change value?"></ds-input>
             </label>
+        </div>
+    </section>
+
+
+
+    <script type="module">
+        import picodash from "./dist/picodash-base.esm.js"
+        let p = new picodash.SimpleVariableDataSource('pt', {})
+        p.register()
+
+
+    </script>
+    <section class="window margin">
+        <div class="stacked-form">
+            <p>The prompt: provider lets you ask the user questions.</p>
+            <label>text
+                <ds-input source="pt"></ds-input>
+            </label>
+
+            <label>Set Value
+                <ds-button source="pt" source-pressed="prompt: enter a new value">Set value</ds-button>
+            </label>
+
+        </div>
+    </section>
+
+    <script type="module">
+        import picodash from "./dist/picodash-base.esm.js"
+        let p2 = new picodash.SimpleVariableDataSource('nav', {})
+        p2.pushData([1, 2, 3, 4])
+        p2.register()
+    </script>
+
+    <section class="window margin">
+        <div class="stacked-form">
+            <p>The nav: key filter lets you get or set just one element of an array or object.</p>
+            <label>The json filter lets you work with lists and objects as json strings.
+                <ds-input source="nav" filter="json:" disabled></ds-input>
+            </label>
+
+            <p>Just edits the third element</p>
+            <label>Third Val
+                <ds-input type="number" source="nav" filter="nav: 2"></ds-input>
+            </label>
+
+        </div>
+    </section>
+
+    <script type="module">
+        import picodash from "./dist/picodash-base.esm.js"
+        let p3 = new picodash.SimpleVariableDataSource('temp', { unit: "C" })
+        p3.pushData(30)
+        p3.register()
+    </script>
+
+    <section class="window margin">
+        <div class="stacked-form">
+            <p>The unit: filter converts to the given unit. It does nothing if the input data has no unit.</p>
+
+            <label>Degrees C
+                <ds-input source="temp"></ds-input>
+            </label>
+
+
+            <label>Degrees F
+                <ds-input source="temp" filter="unit: F"></ds-input>
+            </label>
+
         </div>
     </section>
 </main>

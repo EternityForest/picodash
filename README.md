@@ -174,7 +174,7 @@ if there are none.  This lets you figure out things like the min/max range
 and whether the val is readonly.
 
 
-### widget.pushData(data)
+### async widget.pushData(data)
 
 Called by your code in the widget to push new data to the source.
 Data must be unfiltered, all the filters in the filter stack are automatically
@@ -183,6 +183,13 @@ applied in reverse order.
 Returns the filtered data that was pushed.  If it's null, then
 you know the push failed because a filter blocked it, probably because the user
 cancelled a confirm: filter.
+
+Some filters are stateful, so you should always call refresh() to "prime" filters with new data,
+before setting a value.
+
+### async widget.refresh()
+
+Requests new data from the source, runs it through filters, then returns it.
 
 ### Builtin Widgets
 
@@ -204,6 +211,8 @@ Just a span that shows the data.
 
 Filters convert between filtered and unfiltered versions of a value.
 They are usually two-way, but you can build one-way filters if needed.
+
+Filter argumemts may not contain any string that looks like "--foo" as that is reserved.
 
 Filters can also block a value completely, by returning null.  In this case,
 the value will not be set, and a notification will pop up.
@@ -266,6 +275,14 @@ Use your filter
 
 ### Builtin filters
 
+#### nav: key
+
+When getting, the data should be an array or object, gets just that one key of it.
+When setting, it will alter that one key of the last known complete value.
+
+Filters like this are why elements should always get values before setting them.
+
+
 #### mult: val
 
 #### offset: val
@@ -281,6 +298,14 @@ Snackbar every time val changes
 Vibrate 200ms when val changes
 
 
+
+## Builtin Datasources
+
+### prompt: promptText
+
+Whenever anything tries to get the value, asks the user.
+Use this as the source-pressed of a button, to make a button that prompts the
+user for a new value for another element.
 
 
 
@@ -324,6 +349,31 @@ to do any further CSS targeting.
     --border-radius: 20px;
     --control-border-radius: 20px;
 }
+
+
+## Using plugins
+
+To use a plugin, you must add an import map to the page, telling the browser where to find things
+
+### Unit conversions
+Due to the unit conversion code being larger than the entire picodash code, it's a plugin.
+
+You need to have [convert.js](https://www.npmjs.com/package/convert) somewhere, along with the
+picodash units plugin itself.
+
+
+```html
+<script type="importmap">
+    {
+      "imports": {
+        "picodash": "./dist/picodash-base.esm.js",
+        "convert": "./plugins/convert.min.js"
+      }
+    }
+</script>
+
+<script type="module" src="./plugins/picodash-units.js"></script>
+```
 
 
 ## Building

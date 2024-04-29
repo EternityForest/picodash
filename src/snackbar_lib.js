@@ -91,6 +91,7 @@ THE SOFTWARE.
         var maxStack = options.maxStack; if (maxStack === void 0) maxStack = 3;
         this.message = message;
         this.options = {
+            input: options.input || false,
             timeout: timeout,
             actions: actions,
             position: position,
@@ -146,6 +147,15 @@ THE SOFTWARE.
 
         container.appendChild(text); // Add action buttons
 
+
+        if (this.options.input) {
+            this.inputElement = document.createElement('input');
+            this.inputElement.className = 'snackbar--input';
+
+            container.appendChild(this.inputElement);
+
+            setTimeout(() => this.inputElement.focus(), 50)
+        }
         if (this.options.actions) {
             var loop = function () {
                 var action = list[i];
@@ -156,7 +166,11 @@ THE SOFTWARE.
                 button.className = 'snackbar--button';
                 button.innerHTML = text$1;
 
-                button.addEventListener('click', function () {
+                if (action.accent) {
+                    button.className += ' ' + action.accent
+                }
+
+                function click() {
                     this$1.stopTimer();
 
                     if (callback) {
@@ -164,7 +178,19 @@ THE SOFTWARE.
                     } else {
                         this$1.destroy();
                     }
-                });
+                }
+
+                if (action.enterKey) {
+                    if (this$1.inputElement) {
+                        this$1.inputElement.addEventListener("keyup", function (event) {
+                            if (event.key === "Enter") {
+                                click()
+                            }
+                        });
+                    }
+                }
+
+                button.addEventListener('click', click);
                 container.appendChild(button);
             };
 
