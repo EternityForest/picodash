@@ -1,6 +1,18 @@
 <link rel="stylesheet" type="text/css" href="barrel.css">
 <meta name="viewport" content="width=device-width, initial-scale=1" />
 
+
+<script type="importmap">
+    {
+      "imports": {
+        "picodash": "./dist/picodash-base.esm.js",
+        "convert": "./plugins/convert.min.js"
+      }
+    }
+</script>
+
+<script type="module" src="./plugins/picodash-units.js"></script>
+
 <script type="module">
     import picodash from "./dist/picodash-base.esm.js"
 
@@ -192,6 +204,29 @@
             <p>Just edits the third element</p>
             <label>Third Val
                 <ds-input type="number" source="nav" filter="nav: 2"></ds-input>
+            </label>
+
+        </div>
+    </section>
+
+    <script type="module">
+        import picodash from "./dist/picodash-base.esm.js"
+        let p3 = new picodash.SimpleVariableDataSource('temp', { unit: "C" })
+        p3.pushData(30)
+        p3.register()
+    </script>
+
+    <section class="window margin">
+        <div class="stacked-form">
+            <p>The unit: filter converts to the given unit. It does nothing if the input data has no unit.</p>
+
+            <label>Degrees C
+                <ds-input source="temp"></ds-input>
+            </label>
+
+
+            <label>Degrees F
+                <ds-input source="temp" filter="unit: F"></ds-input>
             </label>
 
         </div>

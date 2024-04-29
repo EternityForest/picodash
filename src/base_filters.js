@@ -1,7 +1,5 @@
 import picodash from './picodash'
 
-
-
 class Snackbar extends picodash.Filter {
   constructor(s, cfg, prev) {
     super(s, cfg, prev)

@@ -351,6 +351,31 @@ to do any further CSS targeting.
 }
 
 
+## Using plugins
+
+To use a plugin, you must add an import map to the page, telling the browser where to find things
+
+### Unit conversions
+Due to the unit conversion code being larger than the entire picodash code, it's a plugin.
+
+You need to have [convert.js](https://www.npmjs.com/package/convert) somewhere, along with the
+picodash units plugin itself.
+
+
+```html
+<script type="importmap">
+    {
+      "imports": {
+        "picodash": "./dist/picodash-base.esm.js",
+        "convert": "./plugins/convert.min.js"
+      }
+    }
+</script>
+
+<script type="module" src="./plugins/picodash-units.js"></script>
+```
+
+
 ## Building
 
 ```bash

@@ -9,9 +9,7 @@
     "build": "npx rollup --config",
     "serve": "npx http-server"
   },
-  "dependencies": {
-    "webpack": "^5.24.1"
-  },
+  "dependencies": {},
   "author": "Daniel Dunn",
   "license": "MIT",
   "devDependencies": {

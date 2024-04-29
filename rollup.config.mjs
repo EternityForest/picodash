@@ -8,7 +8,7 @@ export default {
     {
       file: 'dist/picodash-base.esm.js',
       format: 'es',
-      name: 'version'
+      name: 'version',
     },
     {
       file: 'dist/picodash-base.min.esm.js',
