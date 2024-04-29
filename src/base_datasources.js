@@ -98,6 +98,7 @@ class PromptDataSource extends picodash.DataSource {
         actions: [
           {
             text: 'Confirm',
+            enterKey: true,
             callback(button, snackbar) {
               snackbar.destroy()
               resolve(snackbar.inputElement.value)

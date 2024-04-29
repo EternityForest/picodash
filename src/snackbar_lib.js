@@ -153,6 +153,8 @@ THE SOFTWARE.
             this.inputElement.className = 'snackbar--input';
 
             container.appendChild(this.inputElement);
+
+            setTimeout(() => this.inputElement.focus(), 50)
         }
         if (this.options.actions) {
             var loop = function () {
@@ -164,7 +166,8 @@ THE SOFTWARE.
                 button.className = 'snackbar--button';
                 button.innerHTML = text$1;
 
-                button.addEventListener('click', function () {
+
+                function click() {
                     this$1.stopTimer();
 
                     if (callback) {
@@ -172,7 +175,19 @@ THE SOFTWARE.
                     } else {
                         this$1.destroy();
                     }
-                });
+                }
+
+                if (action.enterKey) {
+                    if (this$1.inputElement) {
+                        this$1.inputElement.addEventListener("keyup", function (event) {
+                            if (event.key === "Enter") {
+                                click()
+                            }
+                        });
+                    }
+                }
+
+                button.addEventListener('click', click);
                 container.appendChild(button);
             };
 
