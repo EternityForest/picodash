@@ -174,7 +174,7 @@ if there are none.  This lets you figure out things like the min/max range
 and whether the val is readonly.
 
 
-### widget.pushData(data)
+### async widget.pushData(data)
 
 Called by your code in the widget to push new data to the source.
 Data must be unfiltered, all the filters in the filter stack are automatically
@@ -183,6 +183,13 @@ applied in reverse order.
 Returns the filtered data that was pushed.  If it's null, then
 you know the push failed because a filter blocked it, probably because the user
 cancelled a confirm: filter.
+
+Some filters are stateful, so you should always call refresh() to "prime" filters with new data,
+before setting a value.
+
+### async widget.refresh()
+
+Requests new data from the source, runs it through filters, then returns it.
 
 ### Builtin Widgets
 
@@ -267,6 +274,14 @@ Use your filter
 ```
 
 ### Builtin filters
+
+#### nav: key
+
+When getting, the data should be an array or object, gets just that one key of it.
+When setting, it will alter that one key of the last known complete value.
+
+Filters like this are why elements should always get values before setting them.
+
 
 #### mult: val
 

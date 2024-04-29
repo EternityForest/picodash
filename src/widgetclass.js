@@ -60,7 +60,13 @@ class BaseDashWidget extends HTMLElement {
           return null
         }
 
-        await this.source.pushData(d)
+        try {
+          await this.source.pushData(d)
+        }
+        catch (e) {
+          picodash.snackbar.createSnackbar("Error setting value!", { accent: 'danger', timeout: 5000 })
+          throw e
+        }
         return d
       }
 

@@ -192,6 +192,49 @@ class Offset extends picodash.Filter {
   }
 }
 
+
+class Nav extends picodash.Filter {
+  constructor(s, cfg, prev) {
+    super(s, cfg, prev)
+    this.k = parseFloat(this.args[0]) || this.args[0]
+    this.lastFullData = null
+  }
+
+  async get(unfiltered) {
+    // Convert from unfiltered to filtered
+    this.lastFullData = unfiltered
+    return unfiltered[this.k]
+  }
+
+  async set(val) {
+    // Convert from filtered to unfiltered
+    if (this.lastFullData == null) {
+      throw new Error("Filter does not have a cached value to set.")
+    }
+    let v = structuredClone(this.lastFullData)
+    v[this.k] = val
+    return v
+  }
+}
+
+class JsonStringify extends picodash.Filter {
+  constructor(s, cfg, prev) {
+    super(s, cfg, prev)
+  }
+
+  async get(unfiltered) {
+    // Convert from unfiltered to filtered
+    return JSON.stringify(unfiltered)
+  }
+
+  async set(val) {
+    // Convert from filtered to unfiltered
+    return JSON.parse(val)
+  }
+}
+
 picodash.addFilterProvider('fixedpoint', FixedPoint)
 picodash.addFilterProvider('offset', Offset)
 picodash.addFilterProvider('mult', Mult)
+picodash.addFilterProvider('nav', Nav)
+picodash.addFilterProvider('json', JsonStringify)

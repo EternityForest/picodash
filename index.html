@@ -174,4 +174,26 @@
 
         </div>
     </section>
+
+    <script type="module">
+        import picodash from "./dist/picodash-base.esm.js"
+        let p2 = new picodash.SimpleVariableDataSource('nav', {})
+        p2.pushData([1, 2, 3, 4])
+        p2.register()
+    </script>
+
+    <section class="window margin">
+        <div class="stacked-form">
+            <p>The nav: key filter lets you get or set just one element of an array or object.</p>
+            <label>The json filter lets you work with lists and objects as json strings.
+                <ds-input source="nav" filter="json:" disabled></ds-input>
+            </label>
+
+            <p>Just edits the third element</p>
+            <label>Third Val
+                <ds-input type="number" source="nav" filter="nav: 2"></ds-input>
+            </label>
+
+        </div>
+    </section>
 </main>
