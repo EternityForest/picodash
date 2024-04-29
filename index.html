@@ -221,12 +221,12 @@
             <p>The unit: filter converts to the given unit. It does nothing if the input data has no unit.</p>
 
             <label>Degrees C
-                <ds-input source="temp"></ds-input>
+                <ds-input source="temp" filter="fixedpoint: 2"></ds-input>
             </label>
 
 
             <label>Degrees F
-                <ds-input source="temp" filter="unit: F"></ds-input>
+                <ds-input source="temp" filter="unit: F | fixedpoint: 2"></ds-input>
             </label>
 
         </div>

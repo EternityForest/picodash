@@ -39,10 +39,10 @@ class UnitConvert extends picodash.Filter {
 
     async set(val) {
         if (this.prevUnit) {
-            return convert(parseFloat(unfiltered), this.unit).to(this.prevUnit)
+            return convert(parseFloat(val), this.unit).to(this.prevUnit)
         }
         else {
-            return unfiltered
+            return val
         }
     }
 }
