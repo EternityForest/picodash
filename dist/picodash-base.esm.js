@@ -71,6 +71,7 @@ const css = `
 
     .snackbar--container {
     display: flex;
+    flex-wrap: wrap;
     background: var(--box-bg);
     border-radius: var(--border-radius);
     box-shadow: 0 1px 4px rgba(0, 0, 0, 0.5);
@@ -86,17 +87,26 @@ const css = `
     border-radius: var(--border-radius) 0px 0px var(--border-radius);
     }
 
+    .snackbar--input {
+        height: 36px;
+        margin: auto 3px auto 3px;
+        flex-grow: 3
+    }
+
     .snackbar--button {
     position: relative;
     flex: 0 1 auto;
     height: 36px;
-    margin: auto 8px auto 8px;
+    margin: auto 3px auto 3px;
     min-width: 5em;
     background: none;
     border: 1px solid;
     border-radius: var(--control-border-radius);
     font-weight: inherit;
-    letter-spacing: 0.05em;
+    padding-left: 3px;
+    padding-right: 3px;
+
+    letter-spacing: 0.02em;
     font-size: 100%;
     text-transform: uppercase;
     text-align: center;
@@ -229,6 +239,7 @@ THE SOFTWARE.
         var maxStack = options.maxStack; if (maxStack === void 0) maxStack = 3;
         this.message = message;
         this.options = {
+            input: options.input || false,
             timeout: timeout,
             actions: actions,
             position: position,
@@ -284,6 +295,15 @@ THE SOFTWARE.
 
         container.appendChild(text); // Add action buttons
 
+
+        if (this.options.input) {
+            this.inputElement = document.createElement('input');
+            this.inputElement.className = 'snackbar--input';
+
+            container.appendChild(this.inputElement);
+
+            setTimeout(() => this.inputElement.focus(), 50);
+        }
         if (this.options.actions) {
             var loop = function () {
                 var action = list[i];
@@ -294,7 +314,11 @@ THE SOFTWARE.
                 button.className = 'snackbar--button';
                 button.innerHTML = text$1;
 
-                button.addEventListener('click', function () {
+                if (action.accent) {
+                    button.className += ' ' + action.accent;
+                }
+
+                function click() {
                     this$1$1.stopTimer();
 
                     if (callback) {
@@ -302,7 +326,19 @@ THE SOFTWARE.
                     } else {
                         this$1$1.destroy();
                     }
-                });
+                }
+
+                if (action.enterKey) {
+                    if (this$1$1.inputElement) {
+                        this$1$1.inputElement.addEventListener("keyup", function (event) {
+                            if (event.key === "Enter") {
+                                click();
+                            }
+                        });
+                    }
+                }
+
+                button.addEventListener('click', click);
                 container.appendChild(button);
             };
 
@@ -817,7 +853,13 @@ class BaseDashWidget extends HTMLElement {
           return null
         }
 
-        await this.source.pushData(d);
+        try {
+          await this.source.pushData(d);
+        }
+        catch (e) {
+          picodash.snackbar.createSnackbar("Error setting value!", { accent: 'danger', timeout: 5000 });
+          throw e
+        }
         return d
       }
 
@@ -841,8 +883,14 @@ class BaseDashWidget extends HTMLElement {
   }
 
   async runFilterStackReverse(data) {
-    for (const i in this.filterStack) {
-      data = await this.filterStack[this.filterStack.length - 1 - i].set(data);
+    try {
+      for (const i in this.filterStack) {
+        data = await this.filterStack[this.filterStack.length - 1 - i].set(data);
+      }
+    }
+    catch (e) {
+      picodash.snackbar.createSnackbar("Value not set, likely invalid.", { accent: "error", timeout: 3000 });
+      throw e
     }
     return data
   }
@@ -1008,12 +1056,26 @@ class InputDashWidget extends picodash.BaseDashWidget {
         }
 
         this.input.type = this.getAttribute('type') || 'text';
+        this.input.disabled = this.getAttribute('disabled') || false;
+        this.input.placeholder = this.getAttribute('placeholder') || '';
+
+        if (this.getAttribute('list')) {
+            this.input.list = this.getAttribute('list') || '';
+        }
+
         this.innerHTML = '';
         this.appendChild(this.input);
         this.style.display = 'contents';
 
         async function f(e) {
-            let rc = await this.pushData(this.input.value);
+            let v = this.input.value;
+
+            if (this.input.type == 'number') {
+                v = parseFloat(v);
+            }
+            // Get before set, some filters need to know the latest value
+            await this.refresh();
+            let rc = await this.pushData(v);
 
             // Setting failed, return to the last good value
             if (rc == null) {
@@ -1076,7 +1138,7 @@ class LogWindowDashWidget extends BaseDashWidget {
 customElements.define('ds-logwindow', LogWindowDashWidget);
 
 class RandomDataSource extends picodash.DataSource {
-  constructor (name, config) {
+  constructor(name, config) {
     super(name, config);
 
     this.config.min = 0;
@@ -1084,67 +1146,128 @@ class RandomDataSource extends picodash.DataSource {
     this.config.high = 0.9;
     this.config.low = 0.1;
 
-    function upd () {
+    function upd() {
       this.pushData(Math.random() * 2 - 1);
     }
     this.interval = setInterval(upd.bind(this), 1000);
   }
 
-  async getData () {
+  async getData() {
     return Math.random() * 2 - 1
   }
 
-  async close () {
+  async close() {
     if (this.interval) {
       clearInterval(this.interval);
     }
   }
 
-  async register () {
+  async register() {
     super.register();
     super.ready();
   }
 }
 
 class FixedDataSource extends picodash.DataSource {
-  constructor (name, config) {
+  constructor(name, config) {
     super(name, config);
     this.config.readonly = true;
     this.data = JSON.parse(name.split(':')[1] || '');
   }
 
-  async getData () {
+  async getData() {
     return this.data
   }
 
-  async pushData (data) {
+  async pushData(data) {
     // Don't allow changes.
     data = this.data;
     super.pushData(data);
   }
 
-  async register () {
+  async register() {
     super.register();
     super.ready();
   }
 }
 
 class SimpleVariableDataSource extends picodash.DataSource {
-  constructor (name, config) {
+  constructor(name, config) {
     super(name, config);
     this.data = config.default || '';
   }
 
-  async getData () {
+  async getData() {
     return this.data
   }
 
-  async pushData (data) {
+  async pushData(data) {
     this.data = data;
     super.pushData(data);
   }
 
-  async register () {
+  async register() {
+    super.register();
+    super.ready();
+  }
+}
+
+class PromptDataSource extends picodash.DataSource {
+  constructor(name, config) {
+    super(name, config);
+    this.prompt = name.split(":")[1];
+    this.config.readonly = true;
+  }
+
+  async getData() {
+    // Get rid of the old one if any
+    if (this.cancel) {
+      this.cancel();
+      this.cancel = null;
+    }
+
+    let _this = this;
+    const promise1 = new Promise((resolve, reject) => {
+
+
+      let sb = picodash.snackbar.createSnackbar(_this.prompt, {
+        input: true,
+        actions: [
+          {
+            text: 'Confirm',
+            enterKey: true,
+            callback(button, snackbar) {
+              snackbar.destroy();
+              resolve(snackbar.inputElement.value);
+            }
+          },
+          {
+            text: 'Cancel',
+            callback(button, snackbar) {
+              snackbar.destroy();
+              resolve(null);
+            }
+          }
+        ]
+      });
+
+      function cancel() {
+        sb.destroy();
+        resolve(null);
+      }
+
+      this.cancel = cancel;
+
+    });
+
+    return promise1
+  }
+
+  async pushData(data) {
+    throw new Error("Not pushable")
+  }
+
+  async register() {
     super.register();
     super.ready();
   }
@@ -1152,6 +1275,8 @@ class SimpleVariableDataSource extends picodash.DataSource {
 
 picodash.addDataSourceProvider('random', RandomDataSource);
 picodash.addDataSourceProvider('fixed', FixedDataSource);
+picodash.addDataSourceProvider('prompt', PromptDataSource);
+
 picodash.SimpleVariableDataSource = SimpleVariableDataSource;
 
 class Snackbar extends picodash.Filter {
@@ -1344,9 +1469,52 @@ class Offset extends picodash.Filter {
   }
 }
 
+
+class Nav extends picodash.Filter {
+  constructor(s, cfg, prev) {
+    super(s, cfg, prev);
+    this.k = parseFloat(this.args[0]) || this.args[0];
+    this.lastFullData = null;
+  }
+
+  async get(unfiltered) {
+    // Convert from unfiltered to filtered
+    this.lastFullData = unfiltered;
+    return unfiltered[this.k]
+  }
+
+  async set(val) {
+    // Convert from filtered to unfiltered
+    if (this.lastFullData == null) {
+      throw new Error("Filter does not have a cached value to set.")
+    }
+    let v = structuredClone(this.lastFullData);
+    v[this.k] = val;
+    return v
+  }
+}
+
+class JsonStringify extends picodash.Filter {
+  constructor(s, cfg, prev) {
+    super(s, cfg, prev);
+  }
+
+  async get(unfiltered) {
+    // Convert from unfiltered to filtered
+    return JSON.stringify(unfiltered)
+  }
+
+  async set(val) {
+    // Convert from filtered to unfiltered
+    return JSON.parse(val)
+  }
+}
+
 picodash.addFilterProvider('fixedpoint', FixedPoint);
 picodash.addFilterProvider('offset', Offset);
 picodash.addFilterProvider('mult', Mult);
+picodash.addFilterProvider('nav', Nav);
+picodash.addFilterProvider('json', JsonStringify);
 
 /*
 @copyright
