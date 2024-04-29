@@ -205,6 +205,8 @@ Just a span that shows the data.
 Filters convert between filtered and unfiltered versions of a value.
 They are usually two-way, but you can build one-way filters if needed.
 
+Filter argumemts may not contain any string that looks like "--foo" as that is reserved.
+
 Filters can also block a value completely, by returning null.  In this case,
 the value will not be set, and a notification will pop up.
 
@@ -281,6 +283,14 @@ Snackbar every time val changes
 Vibrate 200ms when val changes
 
 
+
+## Builtin Datasources
+
+### prompt: promptText
+
+Whenever anything tries to get the value, asks the user.
+Use this as the source-pressed of a button, to make a button that prompts the
+user for a new value for another element.
 
 
 

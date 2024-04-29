@@ -151,4 +151,27 @@
             </label>
         </div>
     </section>
+
+
+
+    <script type="module">
+        import picodash from "./dist/picodash-base.esm.js"
+        let p = new picodash.SimpleVariableDataSource('pt', {})
+        p.register()
+
+
+    </script>
+    <section class="window margin">
+        <div class="stacked-form">
+            <p>The prompt: provider lets you ask the user questions.</p>
+            <label>text
+                <ds-input source="pt"></ds-input>
+            </label>
+
+            <label>Set Value
+                <ds-button source="pt" source-pressed="prompt: enter a new value">Set value</ds-button>
+            </label>
+
+        </div>
+    </section>
 </main>

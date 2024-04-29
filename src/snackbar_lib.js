@@ -91,6 +91,7 @@ THE SOFTWARE.
         var maxStack = options.maxStack; if (maxStack === void 0) maxStack = 3;
         this.message = message;
         this.options = {
+            input: options.input || false,
             timeout: timeout,
             actions: actions,
             position: position,
@@ -146,6 +147,13 @@ THE SOFTWARE.
 
         container.appendChild(text); // Add action buttons
 
+
+        if (this.options.input) {
+            this.inputElement = document.createElement('input');
+            this.inputElement.className = 'snackbar--input';
+
+            container.appendChild(this.inputElement);
+        }
         if (this.options.actions) {
             var loop = function () {
                 var action = list[i];

@@ -86,11 +86,16 @@ const css = `
     border-radius: var(--border-radius) 0px 0px var(--border-radius);
     }
 
+    .snackbar--input {
+        height: 36px;
+        margin: auto 3px auto 3px;
+    }
+
     .snackbar--button {
     position: relative;
     flex: 0 1 auto;
     height: 36px;
-    margin: auto 8px auto 8px;
+    margin: auto 3px auto 3px;
     min-width: 5em;
     background: none;
     border: 1px solid;
