@@ -9,7 +9,7 @@ import convert from "convert";
 class UnitConvert extends picodash.Filter {
     constructor(s, cfg, prev) {
         super(s, cfg, prev)
-        this.unit = this.args[0]
+        this.unit = this.args[0].replace('degC', 'C').replace('degF', 'F').replace("degK", 'K')
 
         if (prev && prev.config.unit) {
             this.prevUnit = prev.config.unit
@@ -30,7 +30,6 @@ class UnitConvert extends picodash.Filter {
                 }
             }
         }
-
     }
 
     async get(unfiltered) {

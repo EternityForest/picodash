@@ -235,6 +235,11 @@
         <div class="stacked-form">
             <p>The unit: filter converts to the given unit. It does nothing if the input data has no unit.</p>
 
+
+            <label>ds-span auto-shows the unit
+                <ds-span source="temp" filter="fixedpoint: 2"></ds-span>
+            </label>
+
             <label>Degrees C
                 <ds-input source="temp" filter="fixedpoint: 2"></ds-input>
             </label>
