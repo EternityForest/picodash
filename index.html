@@ -13,6 +13,11 @@
 
 <script type="module" src="./plugins/picodash-units.js"></script>
 
+
+<script src="./plugins/confetti.browser.min.js"></script>
+<script type="module" src="./plugins/picodash-confetti.js"></script>
+
+
 <script type="module">
     import picodash from "./dist/picodash-base.esm.js"
 
@@ -28,6 +33,10 @@
     var ds3 = new picodash.SimpleVariableDataSource("demo1", {})
     await ds3.register()
     await ds3.pushData(0)
+
+    var ds4 = new picodash.SimpleVariableDataSource("confetti", {})
+    await ds4.register()
+    await ds4.pushData(0)
 
     var count = [0]
 
@@ -66,7 +75,7 @@
 
 <main>
     <h2>Picodash Demo</h2>
-    <section class="window">
+    <section class="window margin">
 
         <div class="stacked-form">
 
@@ -113,6 +122,12 @@
     <section class="window margin">
 
         <div class="stacked-form">
+
+
+            <label>The confetti plugin puts confetti everywhere on changes.
+                <ds-input source="confetti" filter="confetti:"></ds-input>
+            </label>
+
 
             <label>Button can set this to a random value!
                 <ds-span source="demo1" filter="fixedpoint: 3"></ds-span>
