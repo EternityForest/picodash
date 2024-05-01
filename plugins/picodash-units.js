@@ -30,14 +30,20 @@ SOFTWARE.
 import picodash from "picodash"
 import convert from "convert"
 
+
+function normalizeUnit(u) {
+    u = u || ''
+    u = u.toString()
+    return u.replace('degC', 'C').replace('degF', 'F').replace("degK", 'K')
+}
 class UnitConvert extends picodash.Filter {
     constructor(s, cfg, prev) {
         super(s, cfg, prev)
-        this.unit = this.args[0].replace('degC', 'C').replace('degF', 'F').replace("degK", 'K')
+        this.unit = this.args[0]
 
         if (prev && prev.config.unit) {
-            this.prevUnit = prev.config.unit
-            this.config.unit = this.unit
+            this.prevUnit = normalizeUnit(prev.config.unit)
+            this.config.unit = normalizeUnit(this.unit)
         }
 
 
@@ -47,7 +53,7 @@ class UnitConvert extends picodash.Filter {
         for (const i of ['min', 'max', 'high', 'low', 'step']) {
             if (typeof prev.config[i] !== 'undefined') {
                 if (prev && prev.config.unit) {
-                    convert(prev.config[i], prev.config.unit).to(this.unit)
+                    convert(prev.config[i], normalizeUnit(prev.config.unit)).to(this.unit)
                 }
                 else {
                     this.config[i] = prev.config[i]
