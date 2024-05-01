@@ -371,6 +371,7 @@ You do still need an import map somewhere on the page, which tells plugins where
 ### Unit conversions
 Due to the unit conversion code being larger than the entire picodash code, it's a plugin.
 
+```html
 <script type="module" src="./plugins/picodash-units.js"></script>
 ```
 
