@@ -998,7 +998,8 @@ customElements.define('ds-button', ButtonDashWidget);
 
 class SpanDashWidget extends BaseDashWidget {
     async onData(data) {
-        this.innerText = data;
+        let unit = this.getActiveConfig().unit || '';
+        this.innerText = data + unit;
     }
 
     async onDataReady() {
