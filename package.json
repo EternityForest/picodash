@@ -9,13 +9,14 @@
     "build": "npx rollup --config",
     "serve": "npx http-server"
   },
-  "dependencies": {},
   "author": "Daniel Dunn",
   "license": "MIT",
   "devDependencies": {
     "@eslint/eslintrc": "^3.0.2",
     "@eslint/js": "^9.1.1",
     "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-legacy": "^3.0.2",
+    "@rollup/plugin-node-resolve": "^15.2.3",
     "@rollup/plugin-terser": "^0.4.4",
     "eslint": "^8.57.0",
     "eslint-config-standard": "^17.1.0",
@@ -24,6 +25,11 @@
     "eslint-plugin-promise": "^6.1.1",
     "globals": "^15.0.0",
     "http-server": "^14.1.1",
-    "rollup": "^4.17.0"
+    "rollup": "^4.17.0",
+    "rollup-plugin-import-map": "^3.0.0"
+  },
+  "dependencies": {
+    "canvas-confetti": "^1.9.3",
+    "convert": "^5.2.0"
   }
 }
