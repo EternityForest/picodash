@@ -193,7 +193,7 @@ class InputDashWidget extends picodash.BaseDashWidget {
             // Setting failed, return to the last good value
             if (rc == null) {
                 if (this.input.type == 'checkbox') {
-                    v = parseFloat(v) > 0
+                    this.input.checked = this.lastVal
                 }
                 else {
                     this.input.value = this.lastVal
