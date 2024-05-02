@@ -149,7 +149,7 @@ class InputDashWidget extends picodash.BaseDashWidget {
         this.className = ''
 
         this.input.type = this.getAttribute('type') || 'text'
-        this.input.disabled = this.getAttribute('disabled') || false
+        this.input.disabled = this.input.disabled || this.getAttribute('disabled') || false
         this.input.placeholder = this.getAttribute('placeholder') || ''
 
         if (this.getAttribute('list')) {

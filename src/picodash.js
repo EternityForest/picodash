@@ -145,7 +145,14 @@ function getFilter(filterName, prevInChain) {
   // Previous in chain is optional, and may
   // Either be a data source or a filter
   filterName = filterName.trim()
-  return new filterProviders[filterName.split(':')[0]](filterName, {}, prevInChain)
+  let f = new filterProviders[filterName.split(':')[0]](filterName, {}, prevInChain)
+
+  if (prevInChain) {
+    if (prevInChain.config.readonly)
+      f.readonly = true
+  }
+
+  return f
 }
 
 class DataSource {
