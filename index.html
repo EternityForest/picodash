@@ -225,6 +225,10 @@
         let p3 = new picodash.SimpleVariableDataSource('temp', { unit: "C" })
         p3.pushData(30)
         p3.register()
+
+        let pb = new picodash.SimpleVariableDataSource('pb', {})
+        pb.pushData(1)
+        pb.register()
     </script>
 
     <section class="window margin">
@@ -245,6 +249,14 @@
                 <ds-input source="temp" filter="unit: F | fixedpoint: 2"></ds-input>
             </label>
 
+
+            <label>Toggles push true/false but can take 0/1
+                <ds-input type="checkbox" class="toggle" source="pb"></ds-input>
+            </label>
+
+            <label>Number inputs can take true/false
+                <ds-input type="number" source="pb"></ds-input>
+            </label>
         </div>
     </section>
 </main>

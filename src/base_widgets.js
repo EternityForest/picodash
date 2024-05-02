@@ -105,7 +105,27 @@ customElements.define('ds-meter', MeterDashWidget)
 
 class InputDashWidget extends picodash.BaseDashWidget {
     async onData(data) {
-        this.input.value = data
+        if (this.input.type == 'checkbox') {
+            if (data == true) {
+                data = true
+            }
+            else if (data == false) {
+                data = false
+            }
+            else {
+                data = parseFloat(data) > 0
+            }
+            this.input.checked = data
+        }
+        else {
+            if (data == true) {
+                data = 1
+            }
+            if (data == false) {
+                data = 0
+            }
+            this.input.value = data
+        }
         this.lastVal = data
     }
 
@@ -138,18 +158,43 @@ class InputDashWidget extends picodash.BaseDashWidget {
         this.style.display = 'contents'
 
         async function f(e) {
-            let v = this.input.value
+            let v = null
+
+            if (this.input.type == 'checkbox') {
+                v = this.input.checked
+            }
+            else {
+                v = this.input.value
+            }
 
             if (this.input.type == 'number') {
                 v = parseFloat(v)
             }
+
+            if (this.input.type == 'checkbox') {
+                if (v == true) {
+                    v = true
+                }
+                else if (v == false) {
+                    v = false
+                }
+                else {
+                    v = parseFloat(v) > 0
+                }
+            }
+
             // Get before set, some filters need to know the latest value
             await this.refresh()
             let rc = await this.pushData(v)
 
             // Setting failed, return to the last good value
             if (rc == null) {
-                this.input.value = this.lastVal
+                if (this.input.type == 'checkbox') {
+                    v = parseFloat(v) > 0
+                }
+                else {
+                    this.input.value = this.lastVal
+                }
             }
         }
         this.input.onchange = f.bind(this)
