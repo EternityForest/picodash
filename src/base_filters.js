@@ -222,7 +222,7 @@ class JsonStringify extends picodash.Filter {
 
   async get(unfiltered) {
     // Convert from unfiltered to filtered
-    return JSON.stringify(unfiltered)
+    return JSON.stringify(unfiltered, null, 2)
   }
 
   async set(val) {
